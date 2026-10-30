@@ -1,0 +1,15 @@
+{
+  "name": "1,000 Rejections",
+  "short_name": "1,000 No's",
+  "description": "Track the 1,000 rejections challenge: log every no, keep a list of asks to make.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eef1f6",
+  "theme_color": "#2340d9",
+  "icons": [
+    {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
