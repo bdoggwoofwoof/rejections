@@ -32,6 +32,7 @@ When you change something, bump `VERSION` in app.js and `CACHE` in sw.js.
 
 ## Versions
 
+- v6.1 (Nov 3, 2026): your own categories. Pick "New category…" in any category picker, or use More → Categories to add, rename (merges if the name exists) or remove (its asks move to Misc.). Kept in settings.customTypes, so backups carry them; categories already on asks or in an imported CSV join the list.
 - v6 (Nov 2, 2026): design and UX pass from the audit. Fixed the Edit dialog overflow; rebuilt Today's hierarchy with a compact log form; reflection is offered, never forced; one filled action per screen; 44px targets; Grid usability; shared rows; More and Settings cleanup; a 9-step tour; type, radius and spacing scales.
 - v5.1 (Nov 2, 2026): accent changed from vermilion to cobalt (#2747c7; #8ea2ff in dark), with a new icon to match.
 - v5 (Nov 2, 2026): redesign from the design questionnaire, with five tabs and a new look. The data format didn't change.

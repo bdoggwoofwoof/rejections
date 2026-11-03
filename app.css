@@ -363,3 +363,14 @@ body.tour-fading .views{opacity:0}
   .biggrid{grid-template-columns:repeat(5,1fr)}
   .toast{bottom:24px;left:calc(50% + 56px)}
 }
+
+/* Categories: inline "New category" field and the Categories dialog */
+.newcat{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:var(--s-2)}
+.newcat input{flex:1 1 160px;min-width:0;border:1px solid var(--edge);background:var(--bg);border-radius:var(--r-m);padding:10px 12px;font-size:var(--fs-3);color:var(--ink);min-height:44px}
+.newcat .ra{min-height:44px}
+.cat-add{margin-top:0}
+.cat-sub{margin:var(--s-2) 0 0;font-size:var(--fs-2);font-weight:700;color:var(--muted-strong);text-transform:uppercase;letter-spacing:.06em}
+.cat-row{flex-wrap:wrap}
+.cat-row .t input{width:100%}
+.cat-empty{list-style:none;padding:var(--s-3) 0}
+.danger-text{color:var(--danger)}

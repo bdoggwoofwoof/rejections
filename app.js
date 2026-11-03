@@ -5,8 +5,8 @@ const PRI = {High:3, Mid:2, Eventually:1};
 const DIFFS = ["Easy","Medium","Hard"];
 const LABEL = {idea:"Idea", waiting:"Pending", no:"No", yes:"Yes", noreply:"No reply", withdrawn:"Withdrawn"};
 const DAY = 864e5;
-const VERSION = "6", VERSION_DATE = "Nov 2, 2026";
-const DEFAULTS = {weeklyGoal: 10, targetDate: "", noReplyCounts: true, followUpDays: 7, askReflect: true, lastBackup: 0, dayStartHour: 0, pauses: [], reminderTime: "", backupSnooze: 0, installDismissed: 0, monthSeen: {}, monthNotes: {}, dareOverride: null};
+const VERSION = "6.1", VERSION_DATE = "Nov 3, 2026";
+const DEFAULTS = {customTypes: [], weeklyGoal: 10, targetDate: "", noReplyCounts: true, followUpDays: 7, askReflect: true, lastBackup: 0, dayStartHour: 0, pauses: [], reminderTime: "", backupSnooze: 0, installDismissed: 0, monthSeen: {}, monthNotes: {}, dareOverride: null};
 
 let items = load();
 let settings = loadSettings();
@@ -52,8 +52,60 @@ function notice(msg){ const n = $("#notice"); n.textContent = msg; n.hidden = !m
 
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 
-for (const t of TYPES){ $("#qType").add(new Option(t, t)); $("#eType").add(new Option(t, t)); }
-$("#qType").value = pref("lastType", "Counseling");
+// ---------- Categories ----------
+// The built-in list plus any Newt adds (kept in settings.customTypes, so backups carry them). Misc. stays last.
+const NEW_CAT = "__new";
+const cleanCat = s => String(s || "").replace(/\s+/g, " ").trim().slice(0, 40);
+function allTypes(){
+  const out = [];
+  for (const t of [...TYPES.filter(t => t !== "Misc."), ...(settings.customTypes || []), "Misc."]) if (t && !out.includes(t)) out.push(t);
+  return out;
+}
+// Any category already on an ask (from an import or an older backup) joins the list, so it can be picked and managed.
+function syncCats(){
+  const known = new Set(allTypes()), add = [];
+  for (const x of items){ const t = normType(x.type); if (!known.has(t)){ known.add(t); add.push(t); } }
+  if (add.length && !window.TOUR_DEMO){ settings.customTypes = [...(settings.customTypes || []), ...add]; saveSettings(); }
+}
+function fillTypes(){
+  syncCats();
+  for (const sel of [$("#qType"), $("#eType")]){
+    const cur = sel.value;
+    sel.innerHTML = allTypes().map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join("") + `<option value="${NEW_CAT}">New category…</option>`;
+    if (cur && cur !== NEW_CAT && allTypes().includes(cur)) sel.value = cur;
+  }
+  const n = (settings.customTypes || []).length;
+  document.querySelectorAll("[data-cat-count]").forEach(el => el.textContent = n ? `${n} of your own; add, rename or remove` : "Add your own categories");
+}
+// Returns the category as stored (an existing one if the name matches, ignoring case).
+function addCategory(name){
+  const t = cleanCat(name); if (!t || t === NEW_CAT) return null;
+  const hit = allTypes().find(x => x.toLowerCase() === t.toLowerCase()); if (hit) return hit;
+  settings.customTypes = [...(settings.customTypes || []), t]; saveSettings(); fillTypes(); return t;
+}
+// Picking "New category…" opens a small inline field under the picker instead of a pop-up.
+function newCatField(sel, before){
+  const host = sel.closest("label, .log-row") || sel;
+  let box = host.nextElementSibling;
+  if (!box || !box.classList.contains("newcat")){
+    box = document.createElement("div"); box.className = "newcat";
+    box.innerHTML = `<input type="text" maxlength="40" aria-label="New category name" placeholder="New category name" autocomplete="off"><button type="button" class="ra" data-nc="add">Add</button><button type="button" class="link muted" data-nc="cancel">Cancel</button>`;
+    host.after(box);
+  }
+  const input = box.querySelector("input");
+  const close = () => { box.remove(); sel.focus(); };
+  const done = () => { const t = addCategory(input.value); if (!t){ input.focus(); return; } sel.value = t; sel.dispatchEvent(new Event("change")); close(); undo = null; toast(`Category “${t}” added.`); };
+  box.onclick = e => { const b = e.target.closest("[data-nc]"); if (!b) return; if (b.dataset.nc === "add") done(); else { sel.value = before; sel.dispatchEvent(new Event("change")); close(); } };
+  input.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); done(); } };   // Enter must not submit the log form (that would log a No)
+  input.value = ""; input.focus();
+}
+for (const sel of [$("#qType"), $("#eType")]){
+  let before = sel.value;
+  sel.addEventListener("focus", () => { if (sel.value !== NEW_CAT) before = sel.value; });
+  sel.addEventListener("change", () => { if (sel.value === NEW_CAT){ sel.value = before; newCatField(sel, before); } else before = sel.value; });
+}
+fillTypes();
+$("#qType").value = allTypes().includes(pref("lastType", "Counseling")) ? pref("lastType", "Counseling") : "Counseling";
 (function(){ let h = ""; for (let b = 0; b < 10; b++){ h += '<div class="hundred">'; for (let i = 0; i < 100; i++) h += "<i></i>"; h += "</div>"; } $("#grid").innerHTML = h; })();
 const cells = [...document.querySelectorAll(".hundred i")];
 
@@ -175,7 +227,7 @@ function render(){
 
   const f = $("#filters");
   if (tab === "ideas" && ideas.length){
-    const present = ["All", ...TYPES.filter(t => ideas.some(x => normType(x.type) === t))];
+    const present = ["All", ...allTypes().filter(t => ideas.some(x => normType(x.type) === t))];
     if (!present.includes(filter)) filter = "All";
     f.innerHTML = present.map(t => `<button type="button" class="chip" aria-pressed="${t === filter}" data-f="${esc(t)}">${esc(t)}</button>`).join("");
     f.hidden = false;
@@ -422,7 +474,7 @@ fearOpts($("#eFearB")); fearOpts($("#eFearA"));
 function openEdit(id){
   const x = items.find(i => i.id === id); if (!x) return; editing = id; delArmed = false;
   $("#eDel").textContent = "Delete";
-  $("#eTask").value = x.task || ""; $("#eStatus").value = x.status || "idea"; $("#eType").value = normType(x.type);
+  $("#eTask").value = x.task || ""; $("#eStatus").value = x.status || "idea"; $("#eType").value = allTypes().includes(normType(x.type)) ? normType(x.type) : "Misc.";
   $("#ePri").value = x.priority || "Mid"; $("#eTime").value = x.timeframe || "This year/2026"; $("#eNotes").value = x.notes || "";
   $("#eDiff").value = x.difficulty || "";
   $("#eFearB").value = typeof x.fearBefore === "number" ? x.fearBefore : (typeof x.fearGuess === "number" ? x.fearGuess : "");
@@ -496,6 +548,60 @@ $("#libList").addEventListener("click", e => { const b = e.target.closest("[data
 $("#libClose").addEventListener("click", () => $("#library").close());
 $("#libOpen").addEventListener("click", openLibrary);
 document.addEventListener("click", e => { if (e.target.closest("[data-open=lib]")) openLibrary(); });
+
+// ---------- Categories dialog (More → Categories) ----------
+let catArmed = null;
+function renderCats(){
+  const used = t => items.filter(x => normType(x.type) === t).length;
+  const mine = settings.customTypes || [];
+  $("#catBuiltIn").textContent = TYPES.join(", ");
+  $("#catList").innerHTML = mine.length ? mine.map((t, i) => {
+    const n = used(t);
+    return `<li class="item cat-row" data-ci="${i}"><div class="t"><span class="task">${esc(t)}</span><span class="meta"><span>${n ? n + (n === 1 ? " ask" : " asks") : "Not used yet"}</span></span></div>
+      <div class="row-acts"><button type="button" class="ra" data-cact="rename">Rename</button><button type="button" class="ra quiet danger-text" data-cact="remove">${catArmed === t ? (n ? `Remove? ${n} → Misc.` : "Tap again to remove") : "Remove"}</button></div></li>`;
+  }).join("") : `<li class="cat-empty help-note">No categories of your own yet.</li>`;
+}
+function openCats(){ catArmed = null; renderCats(); $("#catNew").value = ""; $("#catsDlg").showModal(); $("#catTitle").focus(); }
+function catAdd(){
+  const raw = cleanCat($("#catNew").value); if (!raw){ $("#catNew").focus(); return; }
+  const had = allTypes().some(x => x.toLowerCase() === raw.toLowerCase()), t = addCategory(raw);
+  $("#catNew").value = ""; catArmed = null; renderCats(); undo = null; toast(had ? `“${t}” is already a category.` : `Category “${t}” added.`);
+}
+$("#catAdd").addEventListener("click", catAdd);
+$("#catNew").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); catAdd(); } });
+$("#catList").addEventListener("click", e => {
+  const b = e.target.closest("[data-cact]"); if (!b) return;
+  const row = b.closest("[data-ci]"), old = (settings.customTypes || [])[+row.dataset.ci]; if (!old) return;
+  if (b.dataset.cact === "remove"){
+    if (catArmed !== old){ catArmed = old; renderCats(); return; }
+    const n = items.filter(x => normType(x.type) === old).length;
+    items.forEach(x => { if (normType(x.type) === old) x.type = "Misc."; });
+    settings.customTypes = settings.customTypes.filter(t => t !== old); saveSettings();
+    if (pref("lastType", "") === old) setPref("lastType", "Misc.");
+    catArmed = null; undo = null; if (n) persist(); fillTypes(); renderCats(); toast(n ? `Removed “${old}”; ${n} ${n === 1 ? "ask" : "asks"} moved to Misc.` : `Removed “${old}”.`);
+    return;
+  }
+  // Rename in place
+  catArmed = null;
+  row.querySelector(".t").innerHTML = `<input type="text" maxlength="40" aria-label="New name for ${esc(old)}" value="${esc(old)}">`;
+  row.querySelector(".row-acts").innerHTML = `<button type="button" class="ra" data-cren="save">Save</button><button type="button" class="link muted" data-cren="cancel">Cancel</button>`;
+  const input = row.querySelector("input"); input.focus(); input.select();
+  const save = () => {
+    const t = cleanCat(input.value); if (!t){ input.focus(); return; }
+    if (t === old){ renderCats(); return; }
+    const clash = allTypes().find(x => x !== old && x.toLowerCase() === t.toLowerCase());
+    const target = clash || t;
+    let n = 0; items.forEach(x => { if (normType(x.type) === old){ x.type = target; n++; } });
+    settings.customTypes = clash ? settings.customTypes.filter(x => x !== old) : settings.customTypes.map(x => x === old ? t : x);
+    saveSettings(); if (pref("lastType", "") === old) setPref("lastType", target);
+    undo = null; if (n) persist(); fillTypes(); if ($("#qType").value !== target && pref("lastType", "") === target) $("#qType").value = target;
+    renderCats(); undo = null; toast(clash ? `Merged “${old}” into “${target}”.` : `Renamed to “${t}”.`);
+  };
+  row.querySelector(".row-acts").onclick = ev => { const c = ev.target.closest("[data-cren]"); if (!c) return; if (c.dataset.cren === "save") save(); else renderCats(); };
+  input.onkeydown = ev => { if (ev.key === "Enter"){ ev.preventDefault(); save(); } };
+});
+$("#catClose").addEventListener("click", () => $("#catsDlg").close());
+$("#catsBtn").addEventListener("click", openCats);
 
 // ---------- Settings ----------
 function openSettings(){
@@ -588,7 +694,7 @@ function importCSV(text){
     if (status !== "idea" && !asked) asked = now;
     if (["no","yes","noreply","withdrawn"].includes(status) && !resolved) resolved = asked;
     const pri = get(r, "priority"), diff = get(r, "difficulty");
-    const x = {id: uid(), task, type: normType(get(r, "type")), status, priority: PRI[pri] ? pri : "Mid", timeframe: get(r, "timeframe"),
+    const x = {id: uid(), task, type: normType(cleanCat(get(r, "type") || get(r, "category"))), status, priority: PRI[pri] ? pri : "Mid", timeframe: get(r, "timeframe"),
       difficulty: DIFFS.includes(diff) ? diff : "", notes: get(r, "notes"), said: get(r, "what they said"), askedWhy: get(r, "asked why") || undefined, next: get(r, "next time"),
       created: now + k, asked: status === "idea" ? null : asked, resolved: ["no","yes","noreply","withdrawn"].includes(status) ? resolved : null};
     const fb = num(get(r, "fear before")), fa = num(get(r, "fear after"));
@@ -616,21 +722,23 @@ $("#importFile").addEventListener("change", async e => {
   undo = snapshot();
   const n = importCSV(text);
   if (n < 0){ notice("That file has no Task column. Use a CSV exported from this app or your 1000 Rejections sheet."); $("#notice").dataset.kind = "error"; return; }
-  clearCorrupt(); notice(""); persist(); toast(n ? `Imported ${n} ${n === 1 ? "ask" : "asks"}.` : "Nothing new in that file.");
+  clearCorrupt(); notice(""); persist(); fillTypes(); toast(n ? `Imported ${n} ${n === 1 ? "ask" : "asks"}.` : "Nothing new in that file.");
 });
 $("#restoreReplace").addEventListener("click", () => {
   if (!restorePending) return; undo = snapshot();
   const good = restorePending.items.filter(validItem).map(x => x.id ? x : Object.assign({}, x, {id: uid()})), skipped = restorePending.items.length - good.length;
   items = good; clearCorrupt();
   if (restorePending.settings) { settings = Object.assign({}, DEFAULTS, restorePending.settings, {lastBackup: Date.now()}); saveSettings(); }
-  restorePending = null; $("#restoreDlg").close(); persist(); toast(`Restored ${good.length} ${good.length === 1 ? "ask" : "asks"}` + (skipped ? `, skipped ${skipped} that couldn’t be read.` : "."));
+  restorePending = null; $("#restoreDlg").close(); persist(); fillTypes(); toast(`Restored ${good.length} ${good.length === 1 ? "ask" : "asks"}` + (skipped ? `, skipped ${skipped} that couldn’t be read.` : "."));
 });
 $("#restoreMerge").addEventListener("click", () => {
   if (!restorePending) return; undo = snapshot();
   const ids = new Set(items.map(x => x.id)), tasks = new Set(items.map(x => x.task.toLowerCase())); let n = 0;
   let skipped = 0;
+  for (const t of (restorePending.settings && restorePending.settings.customTypes) || []) if (cleanCat(t) && !allTypes().includes(cleanCat(t))) settings.customTypes = [...(settings.customTypes || []), cleanCat(t)];
+  saveSettings();
   for (const x of restorePending.items){ if (!validItem(x)){ skipped++; continue; } if (ids.has(x.id) || tasks.has(x.task.toLowerCase())) continue; items.push(x.id ? x : Object.assign({}, x, {id: uid()})); n++; }
-  clearCorrupt(); restorePending = null; $("#restoreDlg").close(); persist(); toast(`Added ${n} ${n === 1 ? "ask" : "asks"} from the backup` + (skipped ? `, skipped ${skipped} that couldn’t be read.` : "."));
+  clearCorrupt(); restorePending = null; $("#restoreDlg").close(); persist(); fillTypes(); toast(`Added ${n} ${n === 1 ? "ask" : "asks"} from the backup` + (skipped ? `, skipped ${skipped} that couldn’t be read.` : "."));
 });
 function clearCorrupt(){ if (LOAD_FAILED){ LOAD_FAILED = null; const n = $("#notice"); n.hidden = true; n.dataset.kind = ""; } }
 $("#restoreCancel").addEventListener("click", () => { restorePending = null; $("#restoreDlg").close(); });

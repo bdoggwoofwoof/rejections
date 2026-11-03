@@ -164,6 +164,7 @@
       <h2 class="sec" id="appLbl">App</h2>
       <div class="rows">
         <button type="button" class="row-btn" id="settingsBtn"><b>Settings</b><span>Weekly goal, follow-ups, day start, pause, appearance</span></button>
+        <button type="button" class="row-btn" id="catsBtn"><b>Categories</b><span data-cat-count>Add your own categories</span></button>
         <button type="button" class="row-btn" id="help-library"><b>Starter library</b><span><span data-lib-count>84</span> asks by category and difficulty</span></button>
         <button type="button" class="row-btn" id="help-tour"><b>Take the tour</b><span>A one-minute walk through the app, with sample data</span></button>
       </div>
@@ -254,6 +255,18 @@
     <select id="libCat" aria-label="Category"></select>
     <ul class="items lib-list" id="libList"></ul>
     <div class="foot"><span></span><button type="button" class="b" id="libClose">Done</button></div>
+  </div>
+</dialog>
+
+<dialog id="catsDlg" aria-labelledby="catTitle">
+  <div class="ed">
+    <h2 id="catTitle" tabindex="-1">Categories</h2>
+    <p class="help-note">Built in: <span id="catBuiltIn"></span></p>
+    <div class="newcat cat-add"><input type="text" id="catNew" maxlength="40" placeholder="New category name" aria-label="New category name" autocomplete="off"><button type="button" class="b no" id="catAdd">Add</button></div>
+    <h3 class="cat-sub">Yours</h3>
+    <ul class="items" id="catList"></ul>
+    <p class="help-note">Removing a category moves its asks to Misc. Renaming changes it on every ask.</p>
+    <div class="foot"><span></span><button type="button" class="b" id="catClose">Done</button></div>
   </div>
 </dialog>
 
