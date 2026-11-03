@@ -5,7 +5,7 @@ const PRI = {High:3, Mid:2, Eventually:1};
 const DIFFS = ["Easy","Medium","Hard"];
 const LABEL = {idea:"Idea", waiting:"Pending", no:"No", yes:"Yes", noreply:"No reply", withdrawn:"Withdrawn"};
 const DAY = 864e5;
-const VERSION = "5.1", VERSION_DATE = "Nov 2, 2026";
+const VERSION = "6", VERSION_DATE = "Nov 2, 2026";
 const DEFAULTS = {weeklyGoal: 10, targetDate: "", noReplyCounts: true, followUpDays: 7, askReflect: true, lastBackup: 0, dayStartHour: 0, pauses: [], reminderTime: "", backupSnooze: 0, installDismissed: 0, monthSeen: {}, monthNotes: {}, dareOverride: null};
 
 let items = load();
@@ -242,8 +242,8 @@ function backupNudge(){
   const now = Date.now(), real = items.filter(x => x.status !== "idea").length;
   const backupDue = real >= 10 && (!settings.lastBackup || now - settings.lastBackup > 14 * DAY) && now > (settings.backupSnooze || 0);
   const installDue = !backupDue && !standalone() && isIOS && now - (settings.installDismissed || 0) > 14 * DAY;
-  if (backupDue){ n.innerHTML = `Your list lives only on this phone. <button type="button" id="nudgeBackup">Save a backup</button> <button type="button" class="later" data-snooze="backup">Later</button>`; n.hidden = false; n.dataset.kind = "nudge"; }
-  else if (installDue){ n.innerHTML = `Add this app to your Home Screen so Safari doesn’t clear your list: tap Share, then Add to Home Screen. <button type="button" class="later" data-snooze="install">Got it</button>`; n.hidden = false; n.dataset.kind = "nudge"; }
+  if (backupDue){ n.innerHTML = `Your list lives only on this phone. <button type="button" id="nudgeBackup">Save a backup</button> <button type="button" class="link muted" data-snooze="backup">Later</button>`; n.hidden = false; n.dataset.kind = "nudge"; }
+  else if (installDue){ n.innerHTML = `Add this app to your Home Screen so Safari doesn’t clear your list: tap Share, then Add to Home Screen. <button type="button" class="link muted" data-snooze="install">Got it</button>`; n.hidden = false; n.dataset.kind = "nudge"; }
   else if (n.dataset.kind === "nudge"){ n.hidden = true; n.dataset.kind = ""; }
 }
 function showCorrupt(){
@@ -505,7 +505,7 @@ function openSettings(){
   $("#sReminder").value = settings.reminderTime || "";
   const pz = pausedNow(); $("#sPauseUntil").value = pz ? isoDay(pz.to - 1) : ""; $("#sResume").hidden = !pz;
   $("#sBackupInfo").textContent = settings.lastBackup ? "Last backup: " + new Date(settings.lastBackup).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) : "No backup saved yet.";
-  $("#settingsDlg").showModal();
+  $("#settingsDlg").showModal(); $("#setTitle").focus();
 }
 $("#settingsBtn").addEventListener("click", openSettings);
 $("#sClose").addEventListener("click", () => $("#settingsDlg").close());

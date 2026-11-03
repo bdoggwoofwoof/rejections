@@ -89,7 +89,7 @@
     const inWindow = new Date(now - shiftMs()).getDate() <= 7 && !(settings.monthSeen || {})[r.key];
     if (!(forced || inWindow) || (!st.asks && !st.nos && !st.yeses)){ card.hidden = true; if (forced && !st.asks && !st.nos && !st.yeses){ forced = false; undo = null; toast(`No asks logged in ${r.name}.`); } return; }
     const note = (settings.monthNotes || {})[r.key] || "";
-    card.innerHTML = `<div class="month-head"><h2>${r.name} in review</h2><button type="button" class="later" id="monthDone">Done</button></div>
+    card.innerHTML = `<div class="month-head"><h2>${r.name} in review</h2><button type="button" class="link" id="monthDone">Done</button></div>
       <div class="month-stats"><div><b>${st.asks}</b><span>asks</span></div><div><b>${st.nos}</b><span>no’s</span></div><div><b>${st.yeses}</b><span>yes</span></div></div>
       ${st.scary ? `<p><span class="k">Scariest ask</span> ${esc(st.scary.task)} <small>(${st.scary.fearBefore}/10)</small></p>` : ""}
       ${st.drop ? `<p><span class="k">Biggest fear drop</span> ${esc(st.drop.task)} <small>(${st.drop.fearBefore} → ${st.drop.fearAfter})</small></p>` : ""}
