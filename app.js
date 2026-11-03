@@ -5,7 +5,7 @@ const PRI = {High:3, Mid:2, Eventually:1};
 const DIFFS = ["Easy","Medium","Hard"];
 const LABEL = {idea:"Idea", waiting:"Waiting", no:"Rejected", yes:"Accepted", noreply:"No reply", withdrawn:"Withdrawn"};
 const DAY = 864e5;
-const VERSION = "5", VERSION_DATE = "Nov 2, 2026";
+const VERSION = "5.1", VERSION_DATE = "Nov 2, 2026";
 const DEFAULTS = {weeklyGoal: 10, targetDate: "", noReplyCounts: true, followUpDays: 7, askReflect: true, lastBackup: 0, dayStartHour: 0, pauses: [], reminderTime: "", backupSnooze: 0, installDismissed: 0, monthSeen: {}, monthNotes: {}, dareOverride: null};
 
 let items = load();

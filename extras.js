@@ -111,7 +111,7 @@
   async function sharePicture(kind){
     try { await document.fonts.ready; } catch(e){}
     const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
-    const bg = css("--bg") || "#eef1f6", ink = css("--ink") || "#141a2b", muted = css("--muted") || "#5b6478", accent = css("--accent") || "#2340d9", cell = css("--cell") || "#dde2ec";
+    const bg = css("--bg") || "#eef1f6", ink = css("--ink") || "#141a2b", muted = css("--muted") || "#5b6478", accent = css("--accent") || "#2747c7", cell = css("--cell") || "#dde2ec";
     const disp = "'Schibsted Grotesk',system-ui,sans-serif", body = "'Schibsted Grotesk',system-ui,sans-serif";
     g.fillStyle = bg; g.fillRect(0, 0, W, H);
     const nos = items.filter(isNo).length, yes = items.filter(x => x.status === "yes").length, asks = items.filter(x => x.status !== "idea").length;

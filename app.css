@@ -1,9 +1,9 @@
 /* 1,000 Rejections v5: a field notebook with poster numbers.
-   Warm paper, charcoal ink, one vermilion accent that means action and progress.
+   Warm paper, charcoal ink, one cobalt accent that means action and progress.
    Schibsted Grotesk for everything, IBM Plex Mono for counts and dates. */
 :root{
   --bg:#f4efe6; --surface:#fbf8f2; --ink:#1e1c19; --muted:#6b645b; --line:#e0d8ca; --cell:#e4ddcf;
-  --accent:#cf3a16; --accent-ink:#ffffff; --accent-soft:#f5dccf;
+  --accent:#2747c7; --accent-ink:#ffffff; --accent-soft:#dfe4f7;
   --yes:#36754f; --wait:#94600f;
   --sans:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -12,10 +12,10 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#1b1a18; --surface:#252320; --ink:#f2ede4; --muted:#a69e92; --line:#36332e; --cell:#302d29;
-  --accent:#ff6a40; --accent-ink:#1b1a18; --accent-soft:#4a2a1f; --yes:#7fc19a; --wait:#e3aa4c; color-scheme:dark}}
+  --accent:#8ea2ff; --accent-ink:#1b1a18; --accent-soft:#262c4a; --yes:#7fc19a; --wait:#e3aa4c; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#1b1a18; --surface:#252320; --ink:#f2ede4; --muted:#a69e92; --line:#36332e; --cell:#302d29;
-  --accent:#ff6a40; --accent-ink:#1b1a18; --accent-soft:#4a2a1f; --yes:#7fc19a; --wait:#e3aa4c; color-scheme:dark}
+  --accent:#8ea2ff; --accent-ink:#1b1a18; --accent-soft:#262c4a; --yes:#7fc19a; --wait:#e3aa4c; color-scheme:dark}
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
