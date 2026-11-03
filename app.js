@@ -390,15 +390,19 @@ function openEdit(id){
   $("#eAsked").value = x.asked ? isoDay(x.asked) : "";
   $("#eFollow").value = followDue(x) ? isoDay(followDue(x)) : "";
   editShow();
-  $("#dlg").showModal();
+  $("#dlg").showModal(); $("#edTitle").focus();
 }
 function editShow(){
   const s = $("#eStatus").value;
   $("#eFollowRow").hidden = s !== "waiting";
   $("#eAskedRow").hidden = s === "idea";
-  $("#eReflectRows").hidden = s === "idea";
+  $("#eReflectRows").hidden = s === "idea" || s === "waiting";
+  $("#eFearARow").hidden = s === "idea" || s === "waiting";
+  document.querySelectorAll('#eStatusR input').forEach(r => { r.checked = r.value === s; });
 }
 $("#eStatus").addEventListener("change", editShow);
+// Status is picked with the radio chips; the hidden select keeps the value the rest of the editor reads.
+$("#eStatusR").addEventListener("change", e => { if (e.target.name === "eStatusR"){ $("#eStatus").value = e.target.value; editShow(); } });
 $("#eCancel").addEventListener("click", () => $("#dlg").close());
 $("#edForm").addEventListener("submit", e => {
   e.preventDefault();

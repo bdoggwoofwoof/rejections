@@ -31,6 +31,7 @@
       <span class="mono dim" id="todayDate"></span>
     </header>
 
+    <div class="today-main">
     <div class="hero">
       <span class="big" id="nNo" aria-describedby="heroOf">0</span>
       <div class="hero-side">
@@ -45,6 +46,8 @@
       <div class="grid" id="grid" aria-hidden="true"></div>
     </button>
 
+    </div>
+    <div class="today-side">
     <div class="notice" id="notice" hidden></div>
 
     <form class="log" id="quick" autocomplete="off" aria-labelledby="logTitle">
@@ -81,6 +84,7 @@
     </section>
 
     <button type="button" class="month-ready" id="monthReady" hidden></button>
+    </div>
   </section>
 
   <!-- GRID -->
@@ -160,31 +164,45 @@
 <div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button type="button" id="toastUndo">Undo</button></div>
 </div>
 
-<dialog id="dlg">
+<dialog id="dlg" aria-labelledby="edTitle">
   <form class="ed" id="edForm" method="dialog">
-    <h2 id="edTitle">Edit</h2>
-    <label>What you’re asking for<input id="eTask" required></label>
-    <div class="two">
-      <label>Status<select id="eStatus">
+    <h2 id="edTitle" tabindex="-1">Edit ask</h2>
+    <label>What you asked for<input id="eTask" required></label>
+    <fieldset class="status-field">
+      <legend>Status</legend>
+      <div class="radio-chips" id="eStatusR">
+        <label><input type="radio" name="eStatusR" value="no"><span>No</span></label>
+        <label><input type="radio" name="eStatusR" value="yes"><span>Yes</span></label>
+        <label><input type="radio" name="eStatusR" value="waiting"><span>Pending</span></label>
+        <label><input type="radio" name="eStatusR" value="noreply"><span>No reply</span></label>
+        <label><input type="radio" name="eStatusR" value="withdrawn"><span>Withdrawn</span></label>
+        <label><input type="radio" name="eStatusR" value="idea"><span>Idea</span></label>
+      </div>
+      <select id="eStatus" hidden tabindex="-1" aria-hidden="true">
         <option value="idea">Idea</option><option value="waiting">Pending</option>
-        <option value="no">No</option><option value="yes">Yes</option><option value="noreply">No reply</option><option value="withdrawn">Withdrawn</option></select></label>
-      <label>Category<select id="eType"></select></label>
-      <label>Priority<select id="ePri"><option>High</option><option>Mid</option><option>Eventually</option></select></label>
-      <label>Timeframe<select id="eTime"><option>This Month</option><option>Next month</option><option>This year/2026</option><option>Next year/2027</option></select></label>
-      <label>Difficulty<select id="eDiff"><option value="">Not set</option><option>Easy</option><option>Medium</option><option>Hard</option></select></label>
-      <label>Fear before<select id="eFearB"></select></label>
+        <option value="no">No</option><option value="yes">Yes</option><option value="noreply">No reply</option><option value="withdrawn">Withdrawn</option></select>
+    </fieldset>
+    <div class="two">
       <label id="eAskedRow">Asked on<input type="date" id="eAsked"></label>
       <label id="eFollowRow">Follow up on<input type="date" id="eFollow"></label>
+      <label>Category<select id="eType"></select></label>
+      <label>Difficulty<select id="eDiff"><option value="">Not set</option><option>Easy</option><option>Medium</option><option>Hard</option></select></label>
+      <label>Fear before<select id="eFearB"></select></label>
+      <label id="eFearARow">Fear after<select id="eFearA"></select></label>
     </div>
     <div class="stack" id="eReflectRows">
-      <div class="two">
-        <label>Fear after<select id="eFearA"></select></label>
-        <label>Asked why?<select id="eWhy"><option value="">Not noted</option><option value="yes">Yes</option><option value="no">No</option><option value="na">Didn’t apply</option></select></label>
-      </div>
+      <label>Did you ask why?<select id="eWhy"><option value="">Not noted</option><option value="yes">Yes</option><option value="no">No</option><option value="na">Didn’t apply</option></select></label>
       <label>What they said<textarea id="eSaid" rows="2"></textarea></label>
       <label>Next time<textarea id="eNext" rows="2"></textarea></label>
     </div>
-    <label>Notes<textarea id="eNotes" placeholder="Who you asked, what they said, what you'd try next time"></textarea></label>
+    <label>Notes<textarea id="eNotes" rows="2" placeholder="Who you asked, anything to remember"></textarea></label>
+    <details class="more-fields">
+      <summary>Priority and timeframe</summary>
+      <div class="two">
+        <label>Priority<select id="ePri"><option>High</option><option>Mid</option><option>Eventually</option></select></label>
+        <label>Timeframe<select id="eTime"><option>This Month</option><option>Next month</option><option>This year/2026</option><option>Next year/2027</option></select></label>
+      </div>
+    </details>
     <div class="foot">
       <button type="button" class="b danger" id="eDel">Delete</button>
       <div class="acts"><button type="button" class="b" id="eCancel">Cancel</button><button type="submit" class="b no" id="eSave">Save</button></div>
