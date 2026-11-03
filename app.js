@@ -5,12 +5,12 @@ const PRI = {High:3, Mid:2, Eventually:1};
 const DIFFS = ["Easy","Medium","Hard"];
 const LABEL = {idea:"Idea", waiting:"Waiting", no:"Rejected", yes:"Accepted", noreply:"No reply", withdrawn:"Withdrawn"};
 const DAY = 864e5;
-const VERSION = "4.1", VERSION_DATE = "Oct 30, 2026";
+const VERSION = "5", VERSION_DATE = "Nov 2, 2026";
 const DEFAULTS = {weeklyGoal: 10, targetDate: "", noReplyCounts: true, followUpDays: 7, askReflect: true, lastBackup: 0, dayStartHour: 0, pauses: [], reminderTime: "", backupSnooze: 0, installDismissed: 0, monthSeen: {}, monthNotes: {}, dareOverride: null};
 
 let items = load();
 let settings = loadSettings();
-let tab = pref("tab", "ideas"), filter = "All", editing = null, dareId = null, delArmed = false, undo = null, toastTimer = null;
+let tab = pref("tab", "waiting"), filter = "All", editing = null, dareId = null, delArmed = false, undo = null, toastTimer = null;
 let reflecting = null, fearQuick = null, diffQuick = null, libDiff = "All", libCat = "All", restorePending = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -125,7 +125,8 @@ function renderProgress(){
   const week = pz ? `<div class="prog-row"><span>This week</span><span><b>Paused</b> until ${new Date(pz.to - 1).toLocaleDateString("en-US", {month:"short", day:"numeric"})}</span></div><p class="prog-note">Your weekly goal and pace skip these days. Resume any time in Settings.</p>`
     : `<div class="prog-row"><span>This week</span><span><b>${weekAsks}</b> of ${goal} asks</span></div>
     <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${weekAsks}"><i style="width:${Math.min(100, weekAsks / goal * 100)}%"></i></div>`;
-  $("#progress").innerHTML = `${back}${week}<p class="prog-pace">${paceLine}</p>${fear}`;
+  $("#progress").innerHTML = `${back}${week}`;
+  const pm = $("#progressMore"); if (pm) pm.innerHTML = `<p class="prog-pace">${paceLine}</p>${fear}`;
 }
 
 // ---------- Main render ----------
@@ -184,11 +185,11 @@ function render(){
 
   const empty = $("#empty");
   if (!items.length){
-    empty.innerHTML = `Nothing here yet. Log your first ask above, <button type="button" data-open="lib">browse the ask library</button>, or <button type="button" id="emptyImport">import a CSV</button> from your old list.`;
+    empty.innerHTML = `Nothing here yet. Log your first ask on Today, <button type="button" data-open="lib">browse the starter library</button>, or <button type="button" id="emptyImport">import a CSV</button> from your old list.`;
     empty.hidden = false;
   } else if (!list.length){
-    empty.innerHTML = {waiting: "Nothing waiting on an answer. When you send an ask that takes time, log it as Waiting.",
-      ideas: filter === "All" ? `No ideas saved. Type one above and tap Save idea, or <button type="button" data-open="lib">browse the ask library</button>.` : "No ideas in this category.",
+    empty.innerHTML = {waiting: "Nothing pending. When an ask takes time to answer, log it with Still Waiting.",
+      ideas: filter === "All" ? `No ideas saved. Tap Save Idea when you log one, or <button type="button" data-open="lib">browse the starter library</button>.` : "No ideas in this category.",
       log: "Your first no will show up here. Go get one."}[tab];
     empty.hidden = false;
   } else empty.hidden = true;
@@ -260,8 +261,8 @@ $("#toastUndo").addEventListener("click", () => { if (undo){ items = JSON.parse(
 const MILESTONES = [1, 10, 25, 50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 750, 800, 900, 1000];
 function noToast(before){
   const n = items.filter(isNo).length;
-  if (n > before && MILESTONES.includes(n)) return n === 1 ? "Your first no. The hardest one is done." : n === 1000 ? "1,000 no’s. You did it." : `${fmt(n)} no’s. Milestone.`;
-  return "Logged a no. " + fmt(n) + " down.";
+  if (n > before && MILESTONES.includes(n)) return n === 1 ? "First no. The hardest one’s behind you." : n === 1000 ? "1,000 no’s. That’s the whole challenge." : `${fmt(n)} down.`;
+  return "That’s a no. " + fmt(n) + " down.";
 }
 
 function setStatus(id, status){
@@ -274,7 +275,7 @@ function setStatus(id, status){
   else { if (!x.asked) x.asked = now; x.resolved = answered(x) ? now : null; }
   if (status === "waiting" && !x.followUp) x.followUp = now + settings.followUpDays * DAY;
   persist();
-  toast(isNo(x) ? noToast(before) : status === "yes" ? "Logged a yes." : status === "noreply" ? "Marked No reply." : "Moved to Waiting.");
+  toast(isNo(x) ? noToast(before) : status === "yes" ? "A yes. Nice bonus." : status === "noreply" ? "Marked No reply." : "Moved to Pending.");
   if (["no","yes","noreply"].includes(status)) maybeReflect(x.id);
 }
 
@@ -292,9 +293,9 @@ function quick(status){
   if (status === "waiting") x.followUp = now + settings.followUpDays * DAY;
   items.push(x);
   $("#qText").value = ""; setFearQuick(null); setDiffQuick(null);
-  if (status === "waiting" || status === "idea"){ tab = status === "idea" ? "ideas" : "waiting"; setPref("tab", tab); }
+  if (status === "waiting") { tab = "waiting"; setPref("tab", tab); }
   persist();
-  toast({no: noToast(before), yes: "Logged a yes.", waiting: "Added to Waiting.", idea: "Saved to Ideas."}[status]);
+  toast({no: noToast(before), yes: "A yes. Nice bonus.", waiting: "Added to Pending.", idea: "Saved to Ideas."}[status]);
   if (status === "no" || status === "yes") maybeReflect(x.id);
 }
 $("#quick").addEventListener("submit", e => { e.preventDefault(); quick("no"); });
@@ -325,7 +326,7 @@ function easierDare(cur){
   const rank = {Easy: 0, Medium: 1, Hard: 2}, have = new Set(items.map(x => x.task.toLowerCase()));
   const top = cur && rank[cur] ? rank[cur] - 1 : 0;
   const pool = ASK_LIBRARY.map((l, i) => ({...l, i})).filter(l => rank[l.d] <= top && !have.has(l.t.toLowerCase()));
-  const pick = (pool.length ? pool : ASK_LIBRARY.map((l, i) => ({...l, i})).filter(l => l.d === "Easy"))[Math.floor(Math.random() * (pool.length || 1))];
+  const src = pool.length ? pool : ASK_LIBRARY.map((l, i) => ({...l, i})).filter(l => l.d === "Easy"); const pick = src[Math.floor(Math.random() * src.length)];
   settings.dareOverride = {day: dayKey(Date.now()), i: pick.i}; saveSettings(); render();
 }
 $("#dareEasier").addEventListener("click", () => easierDare($("#dareDiff").hidden ? "" : $("#dareDiff").textContent));
@@ -335,7 +336,7 @@ $("#dareGo").addEventListener("click", () => {
     const l = ASK_LIBRARY[settings.dareOverride.i]; settings.dareOverride = null; saveSettings();
     undo = snapshot(); const now = Date.now();
     items.push({id: uid(), task: l.t, type: l.c, status: "waiting", priority: "Mid", timeframe: "", difficulty: l.d, notes: "", created: now, asked: now, followUp: now + settings.followUpDays * DAY, resolved: null});
-    tab = "waiting"; setPref("tab", tab); persist(); toast("Added to Waiting. Tap No or Yes when you hear back."); return;
+    tab = "waiting"; setPref("tab", tab); persist(); toast("Added to Pending. Tap No or Yes when you hear back."); return;
   }
   if ($("#dare").dataset.lib){ const l = ASK_LIBRARY[+String(dareId).slice(4)]; addFromLibrary(l); dareId = null; render(); return; }
   if (dareId) setStatus(dareId, "waiting");

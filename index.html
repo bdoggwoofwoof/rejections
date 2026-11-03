@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>1,000 Rejections</title>
-<meta name="description" content="Track the 1,000 rejections challenge: log every no, keep a list of asks to make.">
-<meta name="theme-color" content="#2340d9">
+<meta name="description" content="A private tracker for the 1,000 rejections challenge: log every ask, rate the fear, watch the grid fill.">
+<meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b1a18" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="1,000 No's">
@@ -15,72 +16,148 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
-<link rel="stylesheet" href="/style.css">
-<link rel="stylesheet" href="/tour.css">
-<link rel="stylesheet" href="/v4.css">
-<style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/app.css">
+<script>try{var t=localStorage.getItem("rejections.theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="eyebrow">1,000 Rejections</div>
-    <div class="count"><span class="big" id="nNo">0</span><span class="of">no’s of <b>1,000</b></span></div>
-    <div class="stats" id="stats"></div>
-  </header>
+<div class="app">
+<main class="views">
 
-  <section aria-label="Progress grid">
-    <div class="grid" id="grid"></div>
-    <div class="gridlbl"><span>Each block is 100 no’s</span><span id="toGo"></span></div>
+  <!-- TODAY -->
+  <section class="view" id="view-today" data-view="today" aria-labelledby="todayTitle">
+    <header class="top">
+      <h1 class="eyebrow" id="todayTitle">1,000 Rejections</h1>
+      <span class="mono dim" id="todayDate"></span>
+    </header>
+
+    <div class="hero">
+      <span class="big" id="nNo" aria-describedby="heroOf">0</span>
+      <div class="hero-side">
+        <span class="of" id="heroOf">no’s of 1,000</span>
+        <span class="mono" id="toGo"></span>
+      </div>
+    </div>
+    <p class="intro" id="intro" hidden>Ask for things until you’ve heard no a thousand times. Every no fills a square. Start with something small.</p>
+    <div class="stats" id="stats"></div>
+
+    <button type="button" class="grid-peek" id="gridPeek" aria-label="Open the full grid">
+      <div class="grid" id="grid" aria-hidden="true"></div>
+    </button>
+
+    <div class="notice" id="notice" hidden></div>
+
+    <form class="log" id="quick" autocomplete="off" aria-labelledby="logTitle">
+      <div class="sec-head"><h2 class="sec" id="logTitle">Log an Ask</h2><button type="button" class="b ghost" data-s="idea">Save as idea</button></div>
+      <label class="sr" for="qText">What did you ask for?</label>
+      <input type="text" id="qText" placeholder="What did you ask for?" enterkeyhint="done">
+      <div class="log-row">
+        <select id="qType" aria-label="Category"></select>
+        <div class="chips seg-chips" id="qDiff" role="group" aria-label="How hard?"><button type="button" class="chip" data-d="Easy" aria-pressed="false">Easy</button><button type="button" class="chip" data-d="Medium" aria-pressed="false">Medium</button><button type="button" class="chip" data-d="Hard" aria-pressed="false">Hard</button></div>
+      </div>
+      <div class="fear" id="qFearWrap">
+        <label for="qFear">How scary? <span id="qFearVal">Not rated</span></label>
+        <input type="range" id="qFear" min="0" max="10" step="1" value="5" aria-describedby="qFearHint">
+        <div class="fear-scale" id="qFearHint"><span>0 calm</span><button type="button" id="qFearClear">Clear</button><span>10 terrified</span></div>
+      </div>
+      <div class="btns">
+        <button type="submit" class="b no" data-s="no">That’s a No</button>
+        <button type="button" class="b yes" data-s="yes">That’s a Yes</button>
+        <button type="button" class="b wait" data-s="waiting">Still Waiting</button>
+      </div>
+    </form>
+
+    <section class="dare" id="dare" hidden aria-labelledby="dareLbl">
+      <div class="dare-head"><h2 class="sec" id="dareLbl">Today’s Dare</h2><span class="pill diff" id="dareDiff" hidden></span></div>
+      <p class="dare-text" id="dareText"></p>
+      <div class="acts"><button class="b no" id="dareGo" type="button">I asked</button><button class="b" id="dareNext" type="button">Another One</button><button class="b" id="dareEasier" type="button">Make It Easier</button></div>
+    </section>
+
+    <section class="progress" id="progress" aria-label="This week"></section>
+
+    <section class="pending-today" id="pendingToday" aria-labelledby="pendLbl">
+      <div class="sec-head"><h2 class="sec" id="pendLbl">Pending</h2><button type="button" class="link" data-goto="history">See all</button></div>
+      <ul class="items" id="pendList"></ul>
+    </section>
+
+    <button type="button" class="month-ready" id="monthReady" hidden></button>
   </section>
 
-  <section class="month" id="monthCard" aria-label="Month in review" hidden></section>
-  <section class="progress" id="progress" aria-label="Progress"></section>
+  <!-- GRID -->
+  <section class="view" id="view-grid" data-view="grid" aria-labelledby="gridTitle" hidden>
+    <header class="top"><h1 class="title" id="gridTitle">The Grid</h1><span class="mono dim" id="gridCount"></span></header>
+    <p class="sub">One square for every no, in the order they came. The dark square is the latest. Tap a square to see that ask.</p>
+    <div class="biggrid" id="bigGrid"></div>
+    <div class="cell-detail" id="cellDetail" aria-live="polite" hidden></div>
+    <div class="legend"><span><i class="sw on"></i>A no</span><span><i class="sw last"></i>Latest</span><span><i class="sw"></i>Still to go</span></div>
+    <h2 class="sec">Milestones</h2>
+    <ol class="milestones" id="milestones"></ol>
+  </section>
 
-  <form class="log" id="quick" autocomplete="off">
-    <label for="qText">What did you ask for?</label>
-    <input type="text" id="qText" placeholder="Asked for a discount on my coffee beans">
-    <div class="row">
-      <select id="qType" aria-label="Category"></select>
-    </div>
-    <div class="fear" id="qFearWrap">
-      <label for="qFear">How scary? <span id="qFearVal">Not rated</span></label>
-      <input type="range" id="qFear" min="0" max="10" step="1" value="5" aria-describedby="qFearHint">
-      <div class="fear-scale" id="qFearHint"><span>0 calm</span><button type="button" id="qFearClear">Clear</button><span>10 terrified</span></div>
-    </div>
-    <div class="qdiff" id="qDiffWrap"><span id="qDiffLbl">How hard?</span><div class="chips" id="qDiff" role="group" aria-labelledby="qDiffLbl"><button type="button" class="chip" data-d="Easy" aria-pressed="false">Easy</button><button type="button" class="chip" data-d="Medium" aria-pressed="false">Medium</button><button type="button" class="chip" data-d="Hard" aria-pressed="false">Hard</button></div></div>
-    <div class="btns">
-      <button type="submit" class="b no" data-s="no">Got a no</button>
-      <button type="button" class="b yes" data-s="yes">Got a yes</button>
-      <button type="button" class="b wait" data-s="waiting">Waiting</button>
-      <button type="button" class="b" data-s="idea">Save idea</button>
-    </div>
-  </form>
+  <!-- IDEAS + HISTORY share one list -->
+  <section class="view" id="view-ideas" data-view="ideas" aria-labelledby="ideasTitle" hidden>
+    <header class="top"><h1 class="title" id="ideasTitle">Ideas</h1><span class="mono dim"><span data-count="ideas"></span> saved</span></header>
+    <div class="list-tools"><button type="button" class="b" id="libOpen">Starter library</button><button type="button" class="b" data-goto="log">Log an Ask</button></div>
+    <div class="chips filters" id="filters" hidden></div>
+    <div class="list-slot" data-slot="ideas"></div>
+  </section>
 
-  <div class="dare" id="dare" hidden>
-    <p><small>Today’s dare <span class="pill diff" id="dareDiff" hidden></span></small><span id="dareText"></span></p>
-    <div class="acts"><button class="b small" id="dareEasier" type="button">Easier</button><button class="b small" id="dareNext" type="button">Another</button><button class="b small no" id="dareGo" type="button">I asked</button></div>
-  </div>
-
-  <section>
-    <div class="tabs" role="tablist">
-      <button class="tab" role="tab" data-tab="waiting" id="tab-waiting">Waiting <span></span></button>
-      <button class="tab" role="tab" data-tab="ideas" id="tab-ideas">Ideas <span></span></button>
-      <button class="tab" role="tab" data-tab="log" id="tab-log">Log <span></span></button>
+  <section class="view" id="view-history" data-view="history" aria-labelledby="histTitle" hidden>
+    <header class="top"><h1 class="title" id="histTitle">History</h1><button type="button" class="link" data-goto="log">Log an Ask</button></header>
+    <div class="seg" role="tablist" aria-label="Show">
+      <button class="tab" role="tab" data-tab="waiting" id="tab-waiting">Pending <span></span></button>
+      <button class="tab" role="tab" data-tab="log" id="tab-log">Answered <span></span></button>
     </div>
-    <div class="list-tools"><div class="chips" id="filters" hidden></div><button type="button" class="b small" id="libOpen">Ask library</button></div>
+    <div class="list-slot" data-slot="history"></div>
+  </section>
+
+  <div id="listPark" hidden><div id="listWrap">
     <ul class="items" id="list"></ul>
     <div class="empty" id="empty" hidden></div>
-  </section>
+  </div></div>
 
-  <div class="notice" id="notice" hidden></div>
-
-  <footer>
-    <button type="button" id="help-btn" class="help-btn"><span class="help-q" aria-hidden="true">?</span> Help</button>
-    <span class="acts"><button type="button" id="shareBtn">Share</button><button type="button" id="settingsBtn">Settings</button><button type="button" id="importBtn">Import</button><button type="button" id="exportBtn">Export CSV</button></span>
+  <!-- MORE -->
+  <section class="view" id="view-more" data-view="more" aria-labelledby="moreTitle" hidden>
+    <header class="top"><h1 class="title" id="moreTitle">More</h1></header>
+    <h2 class="sec">Pace and fear</h2>
+    <section class="stats-more" id="progressMore" aria-label="Pace and fear"></section>
+    <section class="month" id="monthCard" aria-label="Month in review" hidden></section>
+    <h2 class="sec">Your record</h2>
+    <div class="rows">
+      <button type="button" class="row-btn" id="help-month"><b>Month in review</b><span>Last month’s asks, no’s, scariest ask and biggest fear drop</span></button>
+      <button type="button" class="row-btn" id="shareBtn"><b>Share a picture</b><span>Your count and grid as an image. Nothing leaves the phone unless you share it</span></button>
+      <button type="button" class="row-btn" id="help-calendar"><b>Add follow-ups to your calendar</b><span>Pending asks’ follow-up dates, plus an optional daily reminder</span></button>
+      <button type="button" class="row-btn" id="exportBtn"><b>Export CSV</b><span>A spreadsheet of every ask</span></button>
+    </div>
+    <h2 class="sec">Keep it safe</h2>
+    <div class="rows">
+      <button type="button" class="row-btn" id="help-export"><b>Save a backup</b><span id="moreBackupInfo">Your list lives only on this phone</span></button>
+      <button type="button" class="row-btn" id="help-import"><b>Restore or import</b><span>A backup file, or a CSV from your old sheet. Asks already here are skipped</span></button>
+    </div>
+    <h2 class="sec">App</h2>
+    <div class="rows">
+      <button type="button" class="row-btn" id="settingsBtn"><b>Settings</b><span>Weekly goal, finish date, follow-ups, day start, pause</span></button>
+      <div class="row-btn row-static"><b>Appearance</b>
+        <div class="chips" id="themeSeg" role="group" aria-label="Appearance"><button type="button" class="chip" data-theme-set="system">System</button><button type="button" class="chip" data-theme-set="light">Light</button><button type="button" class="chip" data-theme-set="dark">Dark</button></div></div>
+      <button type="button" class="row-btn" id="help-library"><b>Starter library</b><span>87 asks by category and difficulty</span></button>
+      <button type="button" class="row-btn" id="help-tour"><b>Take the tour</b><span>A one-minute walk through the app, with sample data</span></button>
+    </div>
+    <p class="help-note">Tap any ask to edit it, add notes or delete it. After every change you get a few seconds to undo.</p>
+    <p class="version mono" id="versionLine"></p>
     <input type="file" id="importFile" accept=".csv,.json,text/csv,application/json" hidden>
-  </footer>
-  <div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button type="button" id="toastUndo">Undo</button></div>
+    <button type="button" id="importBtn" hidden>Import</button>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="Sections">
+  <button type="button" class="nav" data-nav="today" id="nav-today"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12.5l2.6 2.6L16 9.7"/></svg><span>Today</span></button>
+  <button type="button" class="nav" data-nav="grid" id="nav-grid"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></svg><span>Grid</span></button>
+  <button type="button" class="nav" data-nav="ideas" id="nav-ideas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg><span>Ideas</span></button>
+  <button type="button" class="nav" data-nav="history" id="nav-history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>History</span></button>
+  <button type="button" class="nav" data-nav="more" id="nav-more"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18.5" cy="12" r="1.2"/></svg><span>More</span></button>
+</nav>
+
+<div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button type="button" id="toastUndo">Undo</button></div>
 </div>
 
 <dialog id="dlg">
@@ -89,8 +166,8 @@
     <label>What you’re asking for<input id="eTask" required></label>
     <div class="two">
       <label>Status<select id="eStatus">
-        <option value="idea">Idea</option><option value="waiting">Asked, waiting</option>
-        <option value="no">Got a no</option><option value="yes">Got a yes</option><option value="noreply">No reply</option><option value="withdrawn">Withdrawn</option></select></label>
+        <option value="idea">Idea</option><option value="waiting">Pending</option>
+        <option value="no">No</option><option value="yes">Yes</option><option value="noreply">No reply</option><option value="withdrawn">Withdrawn</option></select></label>
       <label>Category<select id="eType"></select></label>
       <label>Priority<select id="ePri"><option>High</option><option>Mid</option><option>Eventually</option></select></label>
       <label>Timeframe<select id="eTime"><option>This Month</option><option>Next month</option><option>This year/2026</option><option>Next year/2027</option></select></label>
@@ -109,8 +186,8 @@
     </div>
     <label>Notes<textarea id="eNotes" placeholder="Who you asked, what they said, what you'd try next time"></textarea></label>
     <div class="foot">
-      <button type="button" class="b small danger" id="eDel">Delete</button>
-      <div class="acts"><button type="button" class="b small" id="eCancel">Cancel</button><button type="submit" class="b small no" id="eSave">Save</button></div>
+      <button type="button" class="b danger" id="eDel">Delete</button>
+      <div class="acts"><button type="button" class="b" id="eCancel">Cancel</button><button type="submit" class="b no" id="eSave">Save</button></div>
     </div>
   </form>
 </dialog>
@@ -125,18 +202,18 @@
     <div class="why"><span>Did you ask why?</span><div class="chips" id="rWhy"><button type="button" class="chip" data-v="yes">Yes</button><button type="button" class="chip" data-v="no">No</button><button type="button" class="chip" data-v="na">Didn’t apply</button></div></div>
     <label>What would you try next time?<textarea id="rNext" rows="2" placeholder="A smaller ask, a different person, a better time"></textarea></label>
     <label class="check"><input type="checkbox" id="rAgain"> Add it to Ideas to try again later</label>
-    <div class="foot"><span></span><div class="acts"><button type="button" class="b small" id="rSkip">Skip</button><button type="submit" class="b small no">Save</button></div></div>
+    <div class="foot"><span></span><div class="acts"><button type="button" class="b" id="rSkip">Skip</button><button type="submit" class="b no">Save</button></div></div>
   </form>
 </dialog>
 
 <dialog id="library" aria-labelledby="libTitle">
   <div class="ed">
-    <div class="lib-head"><h2 id="libTitle">Ask library</h2><span id="libCount"></span></div>
-    <p class="help-note">Starter asks to borrow. Easy ones build the habit; hard ones stretch it. Added asks go to your Ideas.</p>
+    <div class="lib-head"><h2 id="libTitle">Starter library</h2><span class="mono" id="libCount"></span></div>
+    <p class="help-note">Asks to borrow. Easy ones build the habit; hard ones stretch it. Anything you add goes to Ideas.</p>
     <div class="chips" id="libDiff"></div>
     <select id="libCat" aria-label="Category"></select>
     <ul class="items lib-list" id="libList"></ul>
-    <div class="foot"><span></span><button type="button" class="b small" id="libClose">Done</button></div>
+    <div class="foot"><span></span><button type="button" class="b" id="libClose">Done</button></div>
   </div>
 </dialog>
 
@@ -149,15 +226,16 @@
       <label>Follow up after (days)<input type="number" id="sFollow" min="1" max="120" inputmode="numeric"></label>
       <label>My day starts at<select id="sDayStart"><option value="0">Midnight</option><option value="1">1 a.m.</option><option value="2">2 a.m.</option><option value="3">3 a.m.</option><option value="4">4 a.m.</option><option value="5">5 a.m.</option><option value="6">6 a.m.</option></select></label>
     </div>
-    <div class="pause-box"><b>Pause the challenge</b><span>For finals or travel. Your weekly goal and pace skip these days.</span>
-      <div class="two"><label>Paused until<input type="date" id="sPauseUntil"></label><div class="resume"><button type="button" class="b small" id="sResume" hidden>Resume now</button></div></div></div>
-    <div class="pause-box"><b>Calendar</b><span>Adds your follow-up dates, and a daily reminder if you pick a time, to Apple or Google Calendar. Run it again after you add new asks.</span>
-      <div class="two"><label>Daily reminder (optional)<input type="time" id="sReminder"></label><div class="resume"><button type="button" class="b small" id="sCalendar">Add to calendar</button></div></div></div>
+    <div class="box"><b>Pause the challenge</b><span>For finals or travel. Your weekly goal and pace skip these days.</span>
+      <div class="two"><label>Paused until<input type="date" id="sPauseUntil"></label><div class="resume"><button type="button" class="b" id="sResume" hidden>Resume now</button></div></div></div>
+    <div class="box"><b>Calendar</b><span>Adds your follow-up dates, and a daily reminder if you pick a time, to Apple or Google Calendar. Run it again after you add new asks.</span>
+      <div class="two"><label>Daily reminder (optional)<input type="time" id="sReminder"></label><div class="resume"><button type="button" class="b" id="sCalendar">Add to calendar</button></div></div></div>
     <label class="check"><input type="checkbox" id="sNoReply"> Count “No reply” as a no</label>
     <label class="check"><input type="checkbox" id="sReflect"> Ask how it went after each answer</label>
-    <div class="backup-box"><b>Backup</b><span id="sBackupInfo"></span>
-      <div class="acts"><button type="button" class="b small no" id="sBackup">Save backup</button><button type="button" class="b small" id="sRestore">Restore</button></div></div>
-    <div class="foot"><span></span><div class="acts"><button type="button" class="b small" id="sClose">Cancel</button><button type="submit" class="b small no">Save</button></div></div>
+    <label class="check"><input type="checkbox" id="sHaptics"> Vibrate when a square fills (Android)</label>
+    <div class="box"><b>Backup</b><span id="sBackupInfo"></span>
+      <div class="acts"><button type="button" class="b no" id="sBackup">Save backup</button><button type="button" class="b" id="sRestore">Restore</button></div></div>
+    <div class="foot"><span></span><div class="acts"><button type="button" class="b" id="sClose">Cancel</button><button type="submit" class="b no">Save</button></div></div>
   </form>
 </dialog>
 
@@ -167,27 +245,14 @@
     <p id="restoreText"></p>
     <button type="button" class="opt" id="restoreMerge"><b>Add what’s missing</b><span>Keeps your list and adds asks from the backup that aren’t in it.</span></button>
     <button type="button" class="opt" id="restoreReplace"><b>Replace my list</b><span>Your list becomes exactly the backup. You can undo for a few seconds.</span></button>
-    <div class="foot"><span></span><button type="button" class="b small" id="restoreCancel">Cancel</button></div>
+    <div class="foot"><span></span><button type="button" class="b" id="restoreCancel">Cancel</button></div>
   </div>
 </dialog>
 
-<dialog id="helpDlg" aria-label="Help">
-  <div class="ed">
-    <h2>Help</h2>
-    <button type="button" class="opt" id="help-tour"><b>Take the tour</b><span>A one-minute walk through the app, with sample data.</span></button>
-    <button type="button" class="opt" id="help-export"><b>Save a backup</b><span>A backup file of everything, including settings. Your list lives only on this phone, and deleting the app's icon deletes it.</span></button>
-    <button type="button" class="opt" id="help-import"><b>Restore or import</b><span>Pick a backup file, or a CSV from your old 1000 Rejections sheet. Asks already in the app are skipped.</span></button>
-    <button type="button" class="opt" id="help-library"><b>Ask library</b><span>Starter asks by category and difficulty.</span></button>
-    <button type="button" class="opt" id="help-month"><b>Month in review</b><span>Last month’s asks, no’s, scariest ask and biggest fear drop.</span></button>
-    <button type="button" class="opt" id="help-share"><b>Share a picture</b><span>Your count and grid as an image. Nothing leaves the phone unless you share it.</span></button>
-    <button type="button" class="opt" id="help-calendar"><b>Add follow-ups to your calendar</b><span>A calendar file with your follow-up dates and an optional daily reminder.</span></button>
-    <p class="help-note">Tap any ask to edit it, add notes or delete it. After every change you get a few seconds to undo.</p>
-    <div class="foot"><span class="version" id="versionLine"></span><button type="button" class="b small" id="help-close">Close</button></div>
-  </div>
-</dialog>
 <script src="/library.js"></script>
 <script src="/app.js"></script>
 <script src="/extras.js"></script>
+<script src="/nav.js"></script>
 <script src="/tour.js"></script>
 </body>
 </html>

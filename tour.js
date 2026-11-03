@@ -1,22 +1,24 @@
 (function(){
   const TOUR = [
-    [null, "Welcome to 1,000 Rejections", "A quick look at how it works. It takes about a minute, and you can skip it any time. The numbers you’ll see are samples."],
-    [".count, #stats", "Your count", "The big number is every no you’ve collected. Under it: total asks, yeses, asks this week and your streak of days with at least one ask."],
-    ["#grid", "1,000 squares", "Each no fills a square, in blocks of 100. The darkest one is your latest."],
-    ["#progress .prog-row, #progress .bar, #progress .prog-pace", "Your pace", "Asks this week against your weekly goal, and when you’ll reach 1,000 at the pace of your last four weeks. Set the goal and a finish-by date in Settings.", {max: 4}],
-    ["#progress .prog-fear", "Is the fear shrinking?", "Rate how scary each ask is, before and after. This compares your first asks with your latest, so you can watch the fear drop as the no’s pile up."],
-    ["#quick", "Log an ask in seconds", "Type what you asked for, pick a category, slide how scary it is and tap Easy, Medium or Hard if you like, then tap Got a no, Got a yes, Waiting or Save idea."],
-    [null, "How did it go?", "After each answer, a short sheet asks how scary it feels now, what they said, whether you asked why, and what you’d try next. You can add it back to Ideas to try again, or skip it. Turn it off in Settings."],
-    ["#dare", "Today’s dare", "One of your ideas, picked for you. High-priority asks come up more often. Tap Another to reroll, Easier to swap in an easier ask for today, or I asked once you’ve done it."],
-    ["#tab-ideas, #filters, #libOpen", "Ideas", "Your backlog of asks to make, highest priority first. Filter by category, or open the ask library.", {tab: "ideas"}],
-    ["#libOpen", "Ask library", "About 90 starter asks across your categories, marked Easy, Medium or Hard. Add any of them to your Ideas in one tap.", {tab: "ideas"}],
-    ["#tab-waiting, #list .item", "Waiting", "Asks you’ve sent that haven’t been answered. Each shows how long it’s been and when to follow up. Once it’s due, you can mark No reply, which counts as a no unless you turn that off.", {tab: "waiting", max: 3}],
-    ["#tab-log, #list .item", "Log", "Every answer, newest first, with the fear before and after. A yes is great. A no is the point.", {tab: "log", max: 3}],
-    ["#list .item .t", "Edit anything", "Tap any ask to change its status, difficulty, dates or fear ratings, add what they said, or delete it. Every change can be undone for a few seconds.", {tab: "log"}],
-    ["#settingsBtn, #importBtn, #exportBtn", "Back it up", "Your list lives only on this phone, with a second copy kept in its storage in case one gets cleared. Save a backup file from Settings or Help, and restore it on a new phone. The app reminds you every two weeks.", {}],
-    ["#settingsBtn", "Make it fit your life", "In Settings: your weekly goal, a finish-by date, when your day starts if you’re up late, and a pause for finals or travel. You can also add follow-up dates and a daily reminder to your calendar.", {}],
-    ["#shareBtn", "Share your progress", "Makes a picture of your count and grid. In the first week of each month, a card also sums up last month, and you can share that too.", {}],
-    ["#help-btn", "Help is always here", "Take this tour again, save a backup, open the ask library or last month’s review from Help at the bottom of the page.", {}],
+    [null, "Welcome to 1,000 Rejections", "A quick look around. It takes about a minute, and you can skip it any time. The numbers you’ll see are samples."],
+    [".hero, #stats", "Your count", "Every no you’ve collected. Under it: total asks, yeses, asks this week and your streak of days with at least one ask.", {view: "today"}],
+    ["#gridPeek", "1,000 squares", "Each no fills a square, in blocks of 100. The dark one is your latest. Tap the grid to open it full size.", {view: "today"}],
+    ["#quick", "Log an Ask", "Type what you asked for, then tap That’s a No, That’s a Yes, Still Waiting or Save Idea. Category, difficulty and how scary it felt are optional.", {view: "today"}],
+    [null, "How did it go?", "After each answer, a short sheet asks how scary it feels now, what they said, whether you asked why, and what you’d try next. Skip it any time, or turn it off in Settings."],
+    ["#dare", "Today’s Dare", "One of your ideas, picked for you. Tap Another One to reroll, Make It Easier to swap in an easier ask for today, or I asked once you’ve done it.", {view: "today"}],
+    ["#progress", "This week", "Asks this week against your weekly goal. Set the goal in Settings, under More.", {view: "today"}],
+    ["#pendingToday", "Pending", "Asks still waiting on an answer, the ones due for a follow-up first. Tap No or Yes when you hear back.", {view: "today"}],
+    ["#bigGrid", "The Grid", "All 1,000 squares. Tap any square to see which ask filled it. Milestones are listed underneath.", {view: "grid"}],
+    ["#view-ideas .list-tools, #filters", "Ideas", "Your backlog of asks to make, highest priority first. Filter by category or borrow from the starter library.", {view: "ideas"}],
+    ["#libOpen", "Starter library", "87 asks across your categories, marked Easy, Medium or Hard. Add any of them to Ideas in one tap.", {view: "ideas"}],
+    ["#view-history .seg, #list .item", "History: Pending", "Everything you’re waiting on, with how long it’s been. Once a follow-up is due you can mark No reply, which counts as a no unless you turn that off.", {view: "history", tab: "waiting", max: 3}],
+    ["#tab-log, #list .item", "History: Answered", "Every answer, newest first, with the fear before and after. A yes is great. A no is the point.", {view: "history", tab: "log", max: 3}],
+    ["#list .item .t", "Edit anything", "Tap any ask to change its status, difficulty, dates or fear ratings, add what they said, or delete it. Every change can be undone for a few seconds.", {view: "history", tab: "log"}],
+    ["#progressMore", "Is the fear shrinking?", "Your pace toward 1,000, and how scary your asks felt before and after, from your first ones to your latest.", {view: "more"}],
+    ["#help-export, #help-import", "Keep it safe", "Your list lives only on this phone, with a second copy in its storage in case one gets cleared. Save a backup file now and then, and restore it on a new phone.", {view: "more"}],
+    ["#settingsBtn", "Make it fit your life", "Weekly goal, a finish-by date, when your day starts if you’re up late, and a pause for finals or travel. Follow-ups can go to your calendar too.", {view: "more"}],
+    ["#shareBtn", "Share your progress", "Makes a picture of your count and grid. In the first week of each month, last month’s review appears here, and you can share that too.", {view: "more"}],
+    ["#help-tour", "The tour lives here", "Take it again any time from More.", {view: "more"}],
     [null, "Go get a no", "The first one is the hardest. Pick something easy from your ideas and ask today."],
   ];
 
@@ -54,7 +56,7 @@
     return out;
   }
 
-  let savedSettings = null, saved = null, savedTab = null, step = 0, running = false, raf = 0, els = null, side = "bottom", mid = true, show = false, lastRect = null, stepToken = 0;
+  let savedSettings = null, saved = null, savedTab = null, savedView = "today", step = 0, running = false, raf = 0, els = null, side = "bottom", mid = true, show = false, lastRect = null, stepToken = 0;
   const root = document.createElement("div");
   root.className = "tour"; root.hidden = true;
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true");
@@ -62,7 +64,7 @@
   document.body.appendChild(root);
   const banner = document.createElement("div");
   banner.className = "demo-banner"; banner.hidden = true; banner.textContent = "Sample data for the tour. Your own list comes back when it ends.";
-  document.querySelector(".wrap").prepend(banner);
+  document.querySelector(".views").prepend(banner);
 
   const cut = root.querySelector(".tour-cut"), ring = root.querySelector(".tour-ring"), card = root.querySelector(".tour-card"), txt = root.querySelector(".tour-txt");
 
@@ -71,16 +73,16 @@
   function start(){
     if (running) return;
     try { for (const d of document.querySelectorAll("dialog[open]")) d.close(); } catch(e){}
-    running = true; savedSettings = settings; settings = Object.assign({}, settings, {weeklyGoal: 10, targetDate: ""}); saved = items; savedTab = tab; window.TOUR_DEMO = true; items = demoItems(); dareId = null;
-    banner.hidden = false; render(); root.hidden = false; document.body.classList.add("tour-on");
+    running = true; savedSettings = settings; settings = Object.assign({}, settings, {weeklyGoal: 10, targetDate: ""}); saved = items; savedTab = tab; savedView = window.currentView ? currentView() : "today"; window.TOUR_DEMO = true; items = demoItems(); dareId = null;
+    banner.hidden = false; if (window.showView) showView("today"); else render(); root.hidden = false; document.body.classList.add("tour-on");
     step = 0; loopStart(); go(0);
   }
   function end(){
     if (!running) return;
     running = false; stepToken++; cancelAnimationFrame(raf);
-    items = saved; saved = null; settings = savedSettings; window.TOUR_DEMO = false; tab = savedTab || "ideas"; filter = "All"; dareId = null;
+    items = saved; saved = null; settings = savedSettings; window.TOUR_DEMO = false; tab = savedTab || "waiting"; filter = "All"; dareId = null;
     banner.hidden = true; root.hidden = true; document.body.classList.remove("tour-on", "tour-fading");
-    lsSet("tourDone", "1"); render(); scrollTo(0, 0);
+    lsSet("tourDone", "1"); if (window.showView) showView(savedView); else render(); scrollTo(0, 0);
   }
 
   const cur = {x: 0, y: 0, w: 0, h: 0, ring: 0, cy: null, op: 0}, vel = {x: 0, y: 0, w: 0, h: 0, cy: 0};
@@ -131,8 +133,12 @@
     root.querySelector(".tour-back").hidden = n === 0;
     root.querySelector(".tour-next").textContent = n === 0 ? "Show me" : n >= TOUR.length - 1 ? "Done" : "Next";
     txt.classList.remove("tour-anim"); void txt.offsetWidth; txt.classList.add("tour-anim");
-    const needTab = extra.tab && tab !== extra.tab;
-    if (needTab){ document.body.classList.add("tour-fading"); await wait(200); if (token !== stepToken) return; setTab(extra.tab); await frame(); await frame(); }
+    const needView = extra.view && window.currentView && currentView() !== extra.view;
+    const needTab = needView || (extra.tab && tab !== extra.tab);
+    if (needTab){ document.body.classList.add("tour-fading"); await wait(200); if (token !== stepToken) return;
+      if (needView) showView(extra.view, {keepScroll: true});
+      if (extra.tab && tab !== extra.tab) setTab(extra.tab);
+      await frame(); await frame(); }
     let found = [];
     if (sel) for (let i = 0; i < 30; i++){
       found = [...document.querySelectorAll(sel)].filter(e => !e.hidden && e.getBoundingClientRect().width > 0);
@@ -158,13 +164,10 @@
   root.querySelector(".tour-skip").addEventListener("click", end);
   addEventListener("keydown", e => { if (!running) return; if (e.key === "Escape") end(); if (e.key === "ArrowRight") root.querySelector(".tour-next").click(); if (e.key === "ArrowLeft") root.querySelector(".tour-back").click(); });
 
-  const help = $("#helpDlg");
-  $("#help-btn").addEventListener("click", () => help.showModal());
-  $("#help-close").addEventListener("click", () => help.close());
-  $("#help-tour").addEventListener("click", () => { help.close(); start(); });
-  $("#help-export").addEventListener("click", () => { help.close(); saveBackup(); });
-  $("#help-import").addEventListener("click", () => { help.close(); $("#importFile").click(); });
-  $("#help-library").addEventListener("click", () => { help.close(); openLibrary(); });
+  $("#help-tour").addEventListener("click", start);
+  $("#help-export").addEventListener("click", () => saveBackup());
+  $("#help-import").addEventListener("click", () => $("#importFile").click());
+  $("#help-library").addEventListener("click", () => openLibrary());
 
   window.startTour = start;
   if (lsGet("tourDone") !== "1") setTimeout(start, 900);

@@ -66,7 +66,7 @@
   $("#sCalendar").addEventListener("click", () => {
     settings.reminderTime = $("#sReminder").value || ""; saveSettings(); exportCalendar();
   });
-  $("#help-calendar").addEventListener("click", () => { $("#helpDlg").close(); exportCalendar(); });
+  $("#help-calendar").addEventListener("click", () => { exportCalendar(); });
 
   // ---------- Month in review ----------
   const monthKey = ms => { const d = new Date(ms - shiftMs()); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); };
@@ -104,7 +104,7 @@
     if (e.target.id === "monthDone"){ const r = prevMonthRange(); settings.monthSeen = Object.assign({}, settings.monthSeen, {[r.key]: true}); saveSettings(); forced = false; renderMonth(); }
     if (e.target.id === "monthShare"){ const r = prevMonthRange(); const inp = $("#monthNote"); if (inp){ settings.monthNotes = Object.assign({}, settings.monthNotes, {[r.key]: inp.value.trim()}); saveSettings(); } sharePicture("month"); }
   });
-  $("#help-month").addEventListener("click", () => { $("#helpDlg").close(); forced = true; renderMonth(); if (!$("#monthCard").hidden) $("#monthCard").scrollIntoView({block: "start", behavior: "smooth"}); });
+  $("#help-month").addEventListener("click", () => { forced = true; if (window.showView) showView("more"); renderMonth(); if (!$("#monthCard").hidden) $("#monthCard").scrollIntoView({block: "start", behavior: "smooth"}); });
 
   // ---------- Share picture ----------
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -112,7 +112,7 @@
     try { await document.fonts.ready; } catch(e){}
     const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
     const bg = css("--bg") || "#eef1f6", ink = css("--ink") || "#141a2b", muted = css("--muted") || "#5b6478", accent = css("--accent") || "#2340d9", cell = css("--cell") || "#dde2ec";
-    const disp = "'Archivo','Arial Narrow',sans-serif", body = "'Atkinson Hyperlegible',system-ui,sans-serif";
+    const disp = "'Schibsted Grotesk',system-ui,sans-serif", body = "'Schibsted Grotesk',system-ui,sans-serif";
     g.fillStyle = bg; g.fillRect(0, 0, W, H);
     const nos = items.filter(isNo).length, yes = items.filter(x => x.status === "yes").length, asks = items.filter(x => x.status !== "idea").length;
     g.fillStyle = muted; g.font = `700 34px ${disp}`; g.letterSpacing = "4px"; g.fillText("1,000 REJECTIONS", 80, 130); g.letterSpacing = "0px";
@@ -145,7 +145,6 @@
   }
   window.sharePicture = sharePicture;
   $("#shareBtn").addEventListener("click", () => sharePicture("count"));
-  $("#help-share").addEventListener("click", () => { $("#helpDlg").close(); sharePicture("count"); });
 
   // ---------- Version ----------
   $("#versionLine").textContent = `Version ${VERSION} · ${VERSION_DATE}`;
