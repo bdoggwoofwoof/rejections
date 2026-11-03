@@ -68,8 +68,10 @@
     const show = pend.slice(0, 3);
     $("#pendList").innerHTML = show.map(x => { const fu = followDue(x), due = fu && fu <= now, d = x.asked ? daysBetween(x.asked, now) : 0;
       return `<li class="item${due ? " is-due" : ""}"><div class="t" data-pedit="${x.id}"><div>${esc(x.task)}</div><div class="meta"><span>${d === 0 ? "asked today" : d === 1 ? "asked 1 day ago" : "asked " + d + " days ago"}</span>${due ? `<span class="pill due">Follow up</span>` : ""}</div></div><div class="acts"><button class="b sm no" data-pact="no" data-id="${x.id}">No</button><button class="b sm yes" data-pact="yes" data-id="${x.id}">Yes</button></div></li>`; }).join("")
-      + (pend.length > 3 ? `<li class="more-line"><button type="button" class="link" data-goto="history">${pend.length - 3} more pending</button></li>` : "");
+    ;
     $("#pendingToday").hidden = !pend.length;
+    $("#pendCount").textContent = pend.length;
+    $("#pendAll").hidden = pend.length <= 3;
     const card = $("#monthCard"), ready = $("#monthReady");
     const h2 = card.querySelector("h2");
     ready.hidden = card.hidden || !h2; if (h2) ready.textContent = `${h2.textContent} is ready →`;

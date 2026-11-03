@@ -135,12 +135,12 @@ function render(){
   const yes = items.filter(x => x.status === "yes").length;
   const waiting = items.filter(x => x.status === "waiting");
   const ideas = items.filter(x => x.status === "idea");
-  const week = items.filter(x => x.asked && x.asked > Date.now() - 7*DAY).length;
   const asks = items.filter(x => x.status !== "idea").length;
   $("#nNo").textContent = fmt(no);
   $("#toGo").textContent = no >= 1000 ? "Done. All 1,000." : fmt(1000 - no) + " to go";
   cells.forEach((c, i) => { c.className = i < no ? (i === no - 1 ? "on last" : "on") : ""; });
-  $("#stats").innerHTML = `<span><b>${fmt(asks)}</b> ${asks === 1 ? "ask" : "asks"}</span><span><b>${fmt(yes)}</b> yes</span><span><b>${week}</b> ${week === 1 ? "ask" : "asks"} this week</span><span><b>${streak()}</b> day streak</span>`;
+  const st = streak();
+  $("#stats").innerHTML = `<span><b>${fmt(asks)}</b> ${asks === 1 ? "ask" : "asks"}</span><span><b>${fmt(yes)}</b> yes</span><span><b>${st}</b>-day streak</span>`;
   renderProgress();
 
   const counts = {waiting: waiting.length, ideas: ideas.length, log: items.filter(answered).length};
@@ -252,9 +252,9 @@ $("#notice").addEventListener("click", async e => {
 });
 
 function snapshot(){ return JSON.stringify(items); }
-function toast(msg){
-  $("#toastText").textContent = msg; $("#toastUndo").hidden = !undo; $("#toast").hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("#toast").hidden = true; undo = null; }, 5000);
+function toast(msg, ms = 5000){
+  $("#toastText").textContent = msg; $("#toastUndo").hidden = !undo; $("#toastReflect").hidden = true; $("#toast").hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("#toast").hidden = true; undo = null; }, ms);
 }
 $("#toastUndo").addEventListener("click", () => { if (undo){ items = JSON.parse(undo); undo = null; persist(); } $("#toast").hidden = true; });
 
@@ -299,7 +299,17 @@ function quick(status){
   if (status === "no" || status === "yes") maybeReflect(x.id);
 }
 $("#quick").addEventListener("submit", e => { e.preventDefault(); quick("no"); });
-document.querySelectorAll("#quick .b[type=button]").forEach(b => b.addEventListener("click", () => quick(b.dataset.s)));
+document.querySelectorAll("#quick button[type=button][data-s]").forEach(b => b.addEventListener("click", () => quick(b.dataset.s)));
+// Optional details (category, difficulty, fear) fold behind one row that always shows what's set.
+function quickSummary(){
+  const parts = [$("#qType").value];
+  if (diffQuick) parts.push(diffQuick);
+  parts.push(fearQuick === null ? "fear not rated" : "fear " + fearQuick + "/10");
+  $("#qMoreSum").textContent = parts.join(" · ");
+}
+$("#qMoreBtn").addEventListener("click", () => { const open = $("#qMore").hidden; $("#qMore").hidden = !open; $("#qMoreBtn").setAttribute("aria-expanded", open); setPref("logMore", open ? "1" : "0"); });
+$("#qType").addEventListener("change", quickSummary);
+if (pref("logMore", "0") === "1"){ $("#qMore").hidden = false; $("#qMoreBtn").setAttribute("aria-expanded", "true"); }
 
 // Fear before, on the quick log (optional)
 function setFearQuick(v){
@@ -307,11 +317,15 @@ function setFearQuick(v){
   $("#qFear").value = v === null ? 5 : v;
   $("#qFearVal").textContent = v === null ? "Not rated" : v + " / 10";
   $("#qFearWrap").classList.toggle("set", v !== null);
+  paintRange($("#qFear"), v !== null);
+  if ($("#qMoreSum")) quickSummary();
 }
+// Range inputs draw their own fill so "not rated" can look different from "set".
+function paintRange(el, set){ el.style.setProperty("--p", set ? (el.value - el.min) / (el.max - el.min) * 100 + "%" : "0%"); el.classList.toggle("unset", !set); }
 $("#qFear").addEventListener("input", e => setFearQuick(+e.target.value));
 $("#qFearClear").addEventListener("click", () => setFearQuick(null));
 setFearQuick(null);
-function setDiffQuick(v){ diffQuick = v; document.querySelectorAll("#qDiff [data-d]").forEach(b => b.setAttribute("aria-pressed", b.dataset.d === v)); }
+function setDiffQuick(v){ diffQuick = v; document.querySelectorAll("#qDiff [data-d]").forEach(b => b.setAttribute("aria-pressed", b.dataset.d === v)); quickSummary(); }
 $("#qDiff").addEventListener("click", e => { const b = e.target.closest("[data-d]"); if (b) setDiffQuick(diffQuick === b.dataset.d ? null : b.dataset.d); });
 
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { tab = t.dataset.tab; setPref("tab", tab); render(); }));
@@ -320,6 +334,7 @@ $("#list").addEventListener("click", e => {
   const a = e.target.closest("[data-act]"); if (a){ setStatus(a.dataset.id, a.dataset.act); return; }
   const t = e.target.closest("[data-edit]"); if (t) openEdit(t.dataset.edit);
 });
+function dareAnswering(on){ $("#dareAsk").hidden = on; $("#dareAnswer").hidden = !on; if (on) $("#dareAnswer .b").focus(); }
 $("#dareNext").addEventListener("click", () => { if (settings.dareOverride){ settings.dareOverride = null; saveSettings(); } pickDare(); render(); });
 // Something easier: swap today's dare for an easier library ask, for today only.
 function easierDare(cur){
@@ -331,20 +346,38 @@ function easierDare(cur){
 }
 $("#dareEasier").addEventListener("click", () => easierDare($("#dareDiff").hidden ? "" : $("#dareDiff").textContent));
 document.addEventListener("click", e => { if (e.target.closest("[data-easy]")){ easierDare("Medium"); $("#dare").scrollIntoView({block: "center"}); } });
+// "I asked" asks how it went right there: No, Yes or Still Waiting.
 $("#dareGo").addEventListener("click", () => {
+  if ($("#dare").dataset.lib === "1"){ const l = ASK_LIBRARY[+String(dareId).slice(4)]; addFromLibrary(l); dareId = null; render(); return; }
+  dareAnswering(true);
+});
+$("#dareAnswer").addEventListener("click", e => {
+  const b = e.target.closest("[data-dans]"); if (!b) return;
+  const s = b.dataset.dans; dareAnswering(false);
+  if (s === "cancel") return;
   if ($("#dare").dataset.lib === "easy"){
+    if (LOAD_FAILED){ undo = null; toast("Choose what to do with your saved list first (the message at the top)."); showCorrupt(); scrollTo(0, 0); return; }
     const l = ASK_LIBRARY[settings.dareOverride.i]; settings.dareOverride = null; saveSettings();
-    undo = snapshot(); const now = Date.now();
-    items.push({id: uid(), task: l.t, type: l.c, status: "waiting", priority: "Mid", timeframe: "", difficulty: l.d, notes: "", created: now, asked: now, followUp: now + settings.followUpDays * DAY, resolved: null});
-    tab = "waiting"; setPref("tab", tab); persist(); toast("Added to Pending. Tap No or Yes when you hear back."); return;
+    undo = snapshot(); const now = Date.now(), before = items.filter(isNo).length;
+    const x = {id: uid(), task: l.t, type: l.c, status: s, priority: "Mid", timeframe: "", difficulty: l.d, notes: "", created: now, asked: now, resolved: s === "waiting" ? null : now};
+    if (s === "waiting") x.followUp = now + settings.followUpDays * DAY;
+    items.push(x); persist();
+    toast(s === "no" ? noToast(before) : s === "yes" ? "A yes. Nice bonus." : "Added to Pending.");
+    if (s !== "waiting") maybeReflect(x.id);
+    return;
   }
-  if ($("#dare").dataset.lib){ const l = ASK_LIBRARY[+String(dareId).slice(4)]; addFromLibrary(l); dareId = null; render(); return; }
-  if (dareId) setStatus(dareId, "waiting");
+  if (dareId) setStatus(dareId, s);
 });
 
 // ---------- Reflection after an answer ----------
 let reflectAsk = "skip";
-function maybeReflect(id){ if (!settings.askReflect || window.TOUR_DEMO) return; openReflect(id); }
+// After an answer the square fills and the toast confirms; reflecting is offered on the toast, never forced.
+function maybeReflect(id){
+  if (!settings.askReflect || window.TOUR_DEMO) return;
+  const b = $("#toastReflect"); b.dataset.id = id; b.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("#toast").hidden = true; undo = null; }, 8000);
+}
+$("#toastReflect").addEventListener("click", e => { const id = e.currentTarget.dataset.id; $("#toast").hidden = true; clearTimeout(toastTimer); openReflect(id); });
 function openReflect(id){
   const x = items.find(i => i.id === id); if (!x) return; reflecting = id;
   $("#rTitle").textContent = x.status === "yes" ? "A yes. How did it go?" : "How did it go?";
@@ -352,12 +385,13 @@ function openReflect(id){
   $("#rBeforeRow").hidden = typeof x.fearBefore === "number";
   $("#rBefore").value = typeof x.fearGuess === "number" ? x.fearGuess : 5; $("#rBeforeVal").textContent = "Not rated"; $("#rBefore").dataset.set = "";
   $("#rAfter").value = 3; $("#rAfterVal").textContent = "Not rated"; $("#rAfter").dataset.set = "";
+  paintRange($("#rBefore"), false); paintRange($("#rAfter"), false);
   $("#rSaid").value = x.said || ""; $("#rNext").value = x.next || ""; $("#rAgain").checked = false;
   reflectAsk = x.askedWhy || "skip"; paintWhy();
   $("#reflect").showModal();
 }
 for (const k of ["Before","After"]){
-  $("#r" + k).addEventListener("input", e => { e.target.dataset.set = "1"; $("#r" + k + "Val").textContent = e.target.value + " / 10"; });
+  $("#r" + k).addEventListener("input", e => { e.target.dataset.set = "1"; $("#r" + k + "Val").textContent = e.target.value + " / 10"; paintRange(e.target, true); });
 }
 function paintWhy(){ document.querySelectorAll("#rWhy [data-v]").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === reflectAsk)); }
 $("#rWhy").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b){ reflectAsk = b.dataset.v; paintWhy(); } });

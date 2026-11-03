@@ -41,27 +41,31 @@
     </div>
     <p class="intro" id="intro" hidden>Ask for things until you’ve heard no a thousand times. Every no fills a square. Start with something small.</p>
     <div class="stats" id="stats"></div>
+    <section class="progress" id="progress" aria-label="This week"></section>
 
     <button type="button" class="grid-peek" id="gridPeek" aria-label="Open the full grid">
       <div class="grid" id="grid" aria-hidden="true"></div>
+      <span class="peek-cue" aria-hidden="true">Open grid</span>
     </button>
-
     </div>
     <div class="today-side">
     <div class="notice" id="notice" hidden></div>
 
     <form class="log" id="quick" autocomplete="off" aria-labelledby="logTitle">
-      <div class="sec-head"><h2 class="sec" id="logTitle">Log an Ask</h2><button type="button" class="b ghost" data-s="idea">Save as idea</button></div>
+      <div class="sec-head"><h2 class="sec" id="logTitle">Log an Ask</h2><button type="button" class="link" data-s="idea">Save as idea</button></div>
       <label class="sr" for="qText">What did you ask for?</label>
       <input type="text" id="qText" placeholder="What did you ask for?" enterkeyhint="done">
-      <div class="log-row">
-        <select id="qType" aria-label="Category"></select>
-        <div class="chips seg-chips" id="qDiff" role="group" aria-label="How hard?"><button type="button" class="chip" data-d="Easy" aria-pressed="false">Easy</button><button type="button" class="chip" data-d="Medium" aria-pressed="false">Medium</button><button type="button" class="chip" data-d="Hard" aria-pressed="false">Hard</button></div>
-      </div>
-      <div class="fear" id="qFearWrap">
-        <label for="qFear">How scary? <span id="qFearVal">Not rated</span></label>
-        <input type="range" id="qFear" min="0" max="10" step="1" value="5" aria-describedby="qFearHint">
-        <div class="fear-scale" id="qFearHint"><span>0 calm</span><button type="button" id="qFearClear">Clear</button><span>10 terrified</span></div>
+      <button type="button" class="disclose" id="qMoreBtn" aria-expanded="false" aria-controls="qMore"><span class="disclose-label">Details</span><span class="disclose-sum" id="qMoreSum"></span></button>
+      <div class="log-more" id="qMore" hidden>
+        <div class="log-row">
+          <select id="qType" aria-label="Category"></select>
+          <div class="chips" id="qDiff" role="group" aria-label="How hard?"><button type="button" class="chip" data-d="Easy" aria-pressed="false">Easy</button><button type="button" class="chip" data-d="Medium" aria-pressed="false">Medium</button><button type="button" class="chip" data-d="Hard" aria-pressed="false">Hard</button></div>
+        </div>
+        <div class="fear" id="qFearWrap">
+          <label for="qFear">How scary? <span id="qFearVal">Not rated</span></label>
+          <input type="range" id="qFear" min="0" max="10" step="1" value="5" aria-describedby="qFearHint">
+          <div class="fear-scale" id="qFearHint"><span>0 calm</span><button type="button" id="qFearClear">Clear</button><span>10 terrified</span></div>
+        </div>
       </div>
       <div class="btns">
         <button type="submit" class="b no" data-s="no">That’s a No</button>
@@ -70,17 +74,20 @@
       </div>
     </form>
 
+    <section class="pending-today" id="pendingToday" aria-labelledby="pendLbl">
+      <div class="sec-head"><h2 class="sec" id="pendLbl">Pending <span class="mono" id="pendCount"></span></h2><button type="button" class="link" data-goto="history" id="pendAll">See all</button></div>
+      <ul class="items" id="pendList"></ul>
+    </section>
+
     <section class="dare" id="dare" hidden aria-labelledby="dareLbl">
       <div class="dare-head"><h2 class="sec" id="dareLbl">Today’s Dare</h2><span class="pill diff" id="dareDiff" hidden></span></div>
       <p class="dare-text" id="dareText"></p>
-      <div class="acts"><button class="b no" id="dareGo" type="button">I asked</button><button class="b" id="dareNext" type="button">Another One</button><button class="b" id="dareEasier" type="button">Make It Easier</button></div>
-    </section>
-
-    <section class="progress" id="progress" aria-label="This week"></section>
-
-    <section class="pending-today" id="pendingToday" aria-labelledby="pendLbl">
-      <div class="sec-head"><h2 class="sec" id="pendLbl">Pending</h2><button type="button" class="link" data-goto="history">See all</button></div>
-      <ul class="items" id="pendList"></ul>
+      <div class="acts dare-ask" id="dareAsk"><button class="b" id="dareGo" type="button">I asked</button><button class="b" id="dareNext" type="button">Another One</button><button class="b" id="dareEasier" type="button">Make It Easier</button></div>
+      <div class="dare-answer" id="dareAnswer" hidden role="group" aria-labelledby="dareAnsLbl">
+        <span class="dare-q" id="dareAnsLbl">How did it go?</span>
+        <div class="acts"><button class="b" type="button" data-dans="no">No</button><button class="b yes" type="button" data-dans="yes">Yes</button><button class="b wait" type="button" data-dans="waiting">Still Waiting</button></div>
+        <button type="button" class="link" data-dans="cancel">Not yet</button>
+      </div>
     </section>
 
     <button type="button" class="month-ready" id="monthReady" hidden></button>
@@ -161,7 +168,7 @@
   <button type="button" class="nav" data-nav="more" id="nav-more"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18.5" cy="12" r="1.2"/></svg><span>More</span></button>
 </nav>
 
-<div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button type="button" id="toastUndo">Undo</button></div>
+<div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button type="button" id="toastReflect" hidden>How did it go?</button><button type="button" id="toastUndo">Undo</button></div>
 </div>
 
 <dialog id="dlg" aria-labelledby="edTitle">
@@ -249,7 +256,7 @@
     <div class="box"><b>Calendar</b><span>Adds your follow-up dates, and a daily reminder if you pick a time, to Apple or Google Calendar. Run it again after you add new asks.</span>
       <div class="two"><label>Daily reminder (optional)<input type="time" id="sReminder"></label><div class="resume"><button type="button" class="b" id="sCalendar">Add to calendar</button></div></div></div>
     <label class="check"><input type="checkbox" id="sNoReply"> Count “No reply” as a no</label>
-    <label class="check"><input type="checkbox" id="sReflect"> Ask how it went after each answer</label>
+    <label class="check"><input type="checkbox" id="sReflect"> Offer “How did it go?” after each answer</label>
     <label class="check"><input type="checkbox" id="sHaptics"> Vibrate when a square fills (Android)</label>
     <div class="box"><b>Backup</b><span id="sBackupInfo"></span>
       <div class="acts"><button type="button" class="b no" id="sBackup">Save backup</button><button type="button" class="b" id="sRestore">Restore</button></div></div>
