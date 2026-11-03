@@ -94,7 +94,7 @@
       ${st.scary ? `<p><span class="k">Scariest ask</span> ${esc(st.scary.task)} <small>(${st.scary.fearBefore}/10)</small></p>` : ""}
       ${st.drop ? `<p><span class="k">Biggest fear drop</span> ${esc(st.drop.task)} <small>(${st.drop.fearBefore} → ${st.drop.fearAfter})</small></p>` : ""}
       <label class="month-note">One line about ${r.name}<input type="text" id="monthNote" value="${esc(note)}" placeholder="What changed, what you’d tell yourself"></label>
-      <div class="acts"><button type="button" class="b small no" id="monthShare">Share as a picture</button></div>`;
+      <button type="button" class="link" id="monthShare">Share as a picture</button>`;
     card.hidden = false;
   }
   const baseRender = window.render;
@@ -104,7 +104,7 @@
     if (e.target.id === "monthDone"){ const r = prevMonthRange(); settings.monthSeen = Object.assign({}, settings.monthSeen, {[r.key]: true}); saveSettings(); forced = false; renderMonth(); }
     if (e.target.id === "monthShare"){ const r = prevMonthRange(); const inp = $("#monthNote"); if (inp){ settings.monthNotes = Object.assign({}, settings.monthNotes, {[r.key]: inp.value.trim()}); saveSettings(); } sharePicture("month"); }
   });
-  $("#help-month").addEventListener("click", () => { forced = true; if (window.showView) showView("more"); renderMonth(); if (!$("#monthCard").hidden) $("#monthCard").scrollIntoView({block: "start", behavior: "smooth"}); });
+  $("#help-month").addEventListener("click", () => { forced = true; if (window.showView && window.currentView && currentView() !== "grid") showView("grid"); renderMonth(); if (!$("#monthCard").hidden) $("#monthCard").scrollIntoView({block: "start", behavior: "smooth"}); });
 
   // ---------- Share picture ----------
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();

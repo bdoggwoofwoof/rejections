@@ -3,7 +3,7 @@ const KEY = "rejections.v1";
 const TYPES = ["Counseling","Creative","Job","Languages","Opportunity/Fellowship","Recognition","Misc."];
 const PRI = {High:3, Mid:2, Eventually:1};
 const DIFFS = ["Easy","Medium","Hard"];
-const LABEL = {idea:"Idea", waiting:"Waiting", no:"Rejected", yes:"Accepted", noreply:"No reply", withdrawn:"Withdrawn"};
+const LABEL = {idea:"Idea", waiting:"Pending", no:"No", yes:"Yes", noreply:"No reply", withdrawn:"Withdrawn"};
 const DAY = 864e5;
 const VERSION = "5.1", VERSION_DATE = "Nov 2, 2026";
 const DEFAULTS = {weeklyGoal: 10, targetDate: "", noReplyCounts: true, followUpDays: 7, askReflect: true, lastBackup: 0, dayStartHour: 0, pauses: [], reminderTime: "", backupSnooze: 0, installDismissed: 0, monthSeen: {}, monthNotes: {}, dareOverride: null};
@@ -121,12 +121,39 @@ function renderProgress(){
   const pz = pausedNow(now);
   const lastAsk = Math.max(0, ...items.filter(x => x.asked).map(x => x.asked));
   const back = !pz && lastAsk && now - lastAsk > 7 * DAY && !window.TOUR_DEMO
-    ? `<div class="welcome"><p>Welcome back. It’s been ${daysBetween(lastAsk, now)} days, and your count is right where you left it. One easy ask gets you going again.</p><button type="button" class="b small no" data-easy="1">Give me an easy one</button></div>` : "";
+    ? `<div class="welcome"><p>Welcome back. It’s been ${daysBetween(lastAsk, now)} days, and your count is right where you left it. One easy ask gets you going again.</p><button type="button" class="ra" data-easy="1">Give me an easy one</button></div>` : "";
   const week = pz ? `<div class="prog-row"><span>This week</span><span><b>Paused</b> until ${new Date(pz.to - 1).toLocaleDateString("en-US", {month:"short", day:"numeric"})}</span></div><p class="prog-note">Your weekly goal and pace skip these days. Resume any time in Settings.</p>`
     : `<div class="prog-row"><span>This week</span><span><b>${weekAsks}</b> of ${goal} asks</span></div>
     <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${weekAsks}"><i style="width:${Math.min(100, weekAsks / goal * 100)}%"></i></div>`;
   $("#progress").innerHTML = `${back}${week}`;
   const pm = $("#progressMore"); if (pm) pm.innerHTML = `<p class="prog-pace">${paceLine}</p>${fear}`;
+}
+
+// ---------- One row component for every list (Today's Pending, History, Ideas) ----------
+// kind: "waiting" (pending ask), "ideas" (backlog) or "log" (answered). Actions sit under the text.
+function askRow(x, kind){
+  const now = Date.now(), meta = [];
+  let acts = "", due = false, badge = "";
+  if (kind === "waiting"){
+    const d = x.asked ? daysBetween(x.asked, now) : 0, fu = followDue(x); due = !!(fu && fu <= now);
+    meta.push(`<span>asked ${when(x.asked)} · ${d === 0 ? "today" : d === 1 ? "1 day ago" : d + " days ago"}</span>`);
+    if (due) meta.push(`<span class="pill due">Follow up</span>`); else if (fu) meta.push(`<span>follow up ${when(fu)}</span>`);
+    acts = `<button type="button" class="ra" data-act="no" data-id="${x.id}">No</button><button type="button" class="ra yes" data-act="yes" data-id="${x.id}">Yes</button>` + (due ? `<button type="button" class="ra quiet" data-act="noreply" data-id="${x.id}">No reply</button>` : "");
+  }
+  if (kind === "ideas"){
+    meta.push(`<span>${esc(normType(x.type))}</span>`);
+    if (x.difficulty) meta.push(`<span class="pill">${esc(x.difficulty)}</span>`);
+    if (x.priority === "High") meta.push(`<span class="hi">High priority</span>`);
+    acts = `<button type="button" class="ra" data-act="waiting" data-id="${x.id}">I asked</button><button type="button" class="ra" data-act="no" data-id="${x.id}">No</button>`;
+  }
+  if (kind === "log"){
+    if (x.resolved) meta.push(`<span>${when(x.resolved)}</span>`);
+    meta.push(`<span>${esc(normType(x.type))}</span>`);
+    if (typeof x.fearBefore === "number") meta.push(`<span>fear ${x.fearBefore}${typeof x.fearAfter === "number" ? " → " + x.fearAfter : ""}</span>`);
+    badge = `<span class="st ${x.status}">${{no:"No", yes:"Yes", noreply:"No reply", withdrawn:"Withdrawn"}[x.status]}</span>`;
+  }
+  if (x.notes || x.said || x.next) meta.push(`<span>notes</span>`);
+  return `<li class="item ${kind}${due ? " is-due" : ""}"><button type="button" class="t" data-edit="${x.id}" aria-label="Edit: ${esc(x.task)}"><span class="task">${esc(x.task)}</span><span class="meta">${meta.join("")}</span></button>${badge}${acts ? `<div class="row-acts">${acts}</div>` : ""}</li>`;
 }
 
 // ---------- Main render ----------
@@ -161,27 +188,7 @@ function render(){
   if (tab === "ideas") list = ideas.filter(x => filter === "All" || normType(x.type) === filter).sort((a, b) => (PRI[b.priority]||0) - (PRI[a.priority]||0) || (a.created||0) - (b.created||0));
   if (tab === "log") list = items.filter(answered).sort((a, b) => (b.resolved||0) - (a.resolved||0));
 
-  $("#list").innerHTML = list.map(x => {
-    const meta = [`<span>${esc(normType(x.type))}</span>`];
-    if (x.difficulty) meta.push(`<span class="pill diff">${esc(x.difficulty)}</span>`);
-    if (tab === "ideas"){ if (x.priority) meta.push(`<span class="pill ${esc(x.priority)}">${esc(x.priority)}</span>`); if (x.timeframe) meta.push(`<span>${esc(x.timeframe)}</span>`); }
-    let acts = "", due = false;
-    if (tab === "waiting"){
-      const d = x.asked ? daysBetween(x.asked, now) : 0; const fu = followDue(x); due = fu && fu <= now;
-      meta.push(`<span>asked ${when(x.asked)} · ${d === 0 ? "today" : d === 1 ? "1 day" : d + " days"}</span>`);
-      if (due) meta.push(`<span class="pill due">Follow up</span>`); else if (fu) meta.push(`<span>follow up ${when(fu)}</span>`);
-      acts = `<button class="b small no" data-act="no" data-id="${x.id}">No</button><button class="b small yes" data-act="yes" data-id="${x.id}">Yes</button>` + (due ? `<button class="b small" data-act="noreply" data-id="${x.id}">No reply</button>` : "");
-    }
-    if (tab === "ideas") acts = `<button class="b small" data-act="waiting" data-id="${x.id}">Asked</button><button class="b small no" data-act="no" data-id="${x.id}">Got a no</button>`;
-    if (tab === "log"){
-      if (x.resolved) meta.push(`<span>${when(x.resolved)}</span>`);
-      if (typeof x.fearBefore === "number") meta.push(`<span>fear ${x.fearBefore}${typeof x.fearAfter === "number" ? " → " + x.fearAfter : ""}</span>`);
-      const lab = {no:"No", yes:"Yes", noreply:"No reply", withdrawn:"Withdrawn"}[x.status];
-      acts = `<span class="st ${x.status}">${lab}</span>`;
-    }
-    if (x.notes || x.said || x.next) meta.push(`<span>has notes</span>`);
-    return `<li class="item${due ? " is-due" : ""}"><div class="t" data-edit="${x.id}"><div>${esc(x.task)}</div><div class="meta">${meta.join("")}</div></div><div class="acts">${acts}</div></li>`;
-  }).join("");
+  $("#list").innerHTML = list.map(x => askRow(x, tab)).join("");
 
   const empty = $("#empty");
   if (!items.length){
@@ -478,7 +485,7 @@ function renderLibrary(){
   $("#libDiff").innerHTML = ["All", ...DIFFS].map(d => `<button type="button" class="chip" aria-pressed="${d === libDiff}" data-d="${d}">${d}</button>`).join("");
   const list = ASK_LIBRARY.map((l, i) => ({...l, i})).filter(l => (libDiff === "All" || l.d === libDiff) && (libCat === "All" || l.c === libCat));
   $("#libList").innerHTML = list.map(l => { const got = have.has(l.t.toLowerCase());
-    return `<li class="item"><div class="t"><div>${esc(l.t)}</div><div class="meta"><span>${esc(l.c)}</span><span class="pill diff">${l.d}</span></div></div><div class="acts"><button class="b small${got ? "" : " no"}" data-add="${l.i}" ${got ? "disabled" : ""}>${got ? "Added" : "Add"}</button></div></li>`; }).join("");
+    return `<li class="item lib"><div class="t"><span class="task">${esc(l.t)}</span><span class="meta"><span>${esc(l.c)}</span><span class="pill">${l.d}</span></span></div><div class="acts"><button type="button" class="ra" data-add="${l.i}" ${got ? "disabled" : ""}>${got ? "Added" : "Add"}</button></div></li>`; }).join("");
   $("#libCount").textContent = `${list.length} asks`;
 }
 function openLibrary(){ renderLibrary(); $("#library").showModal(); }
@@ -561,7 +568,7 @@ function statusFrom(s, stage){
   if (/withdr/.test(s)) return "withdrawn";
   if (/reject|^no$/.test(s) || /reject/.test(stage)) return "no";
   if (/accept|^yes$/.test(s) || /accept|yes/.test(stage)) return "yes";
-  if (/wait|asked|attempt|sent/.test(s) || /attempt|asked|sent|wait/.test(stage) || s === "completed") return "waiting";
+  if (/wait|pending|asked|attempt|sent/.test(s) || /attempt|asked|sent|wait/.test(stage) || s === "completed") return "waiting";
   return "idea";
 }
 function importCSV(text){

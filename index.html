@@ -94,21 +94,36 @@
     </div>
   </section>
 
-  <!-- GRID -->
+  <!-- GRID: the whole picture, milestones, pace and fear, month in review -->
   <section class="view" id="view-grid" data-view="grid" aria-labelledby="gridTitle" hidden>
     <header class="top"><h1 class="title" id="gridTitle">The Grid</h1><span class="mono dim" id="gridCount"></span></header>
-    <p class="sub">One square for every no, in the order they came. The dark square is the latest. Tap a square to see that ask.</p>
+    <div class="grid-head">
+      <p class="sub">One square for every no, in order. Tap a square to see that ask.</p>
+      <div class="legend" aria-hidden="true"><span><i class="sw on"></i>No</span><span><i class="sw last"></i>Latest</span><span><i class="sw"></i>To go</span></div>
+    </div>
     <div class="biggrid" id="bigGrid"></div>
     <div class="cell-detail" id="cellDetail" aria-live="polite" hidden></div>
-    <div class="legend"><span><i class="sw on"></i>A no</span><span><i class="sw last"></i>Latest</span><span><i class="sw"></i>Still to go</span></div>
-    <h2 class="sec">Milestones</h2>
-    <ol class="milestones" id="milestones"></ol>
+
+    <section class="group" aria-labelledby="msLbl">
+      <h2 class="sec" id="msLbl">Milestones</h2>
+      <p class="ms-next" id="msNext"></p>
+      <p class="help-note" id="msNone">Your first milestone is your first no.</p>
+      <ol class="milestones" id="milestones"></ol>
+    </section>
+
+    <section class="group" aria-labelledby="paceLbl">
+      <h2 class="sec" id="paceLbl">Pace and fear</h2>
+      <div class="stats-more" id="progressMore"></div>
+    </section>
+
+    <section class="month" id="monthCard" aria-label="Month in review" hidden></section>
+    <button type="button" class="link" id="help-month">Last month in review</button>
   </section>
 
   <!-- IDEAS + HISTORY share one list -->
   <section class="view" id="view-ideas" data-view="ideas" aria-labelledby="ideasTitle" hidden>
     <header class="top"><h1 class="title" id="ideasTitle">Ideas</h1><span class="mono dim"><span data-count="ideas"></span> saved</span></header>
-    <div class="list-tools"><button type="button" class="b" id="libOpen">Starter library</button><button type="button" class="b" data-goto="log">Log an Ask</button></div>
+    <div class="list-tools"><button type="button" class="b" id="libOpen">Starter library</button><button type="button" class="link" data-goto="log">Log an Ask</button></div>
     <div class="chips filters" id="filters" hidden></div>
     <div class="list-slot" data-slot="ideas"></div>
   </section>
@@ -116,10 +131,10 @@
   <section class="view" id="view-history" data-view="history" aria-labelledby="histTitle" hidden>
     <header class="top"><h1 class="title" id="histTitle">History</h1><button type="button" class="link" data-goto="log">Log an Ask</button></header>
     <div class="seg" role="tablist" aria-label="Show">
-      <button class="tab" role="tab" data-tab="waiting" id="tab-waiting">Pending <span></span></button>
-      <button class="tab" role="tab" data-tab="log" id="tab-log">Answered <span></span></button>
+      <button class="tab" role="tab" data-tab="waiting" id="tab-waiting" aria-controls="histPanel">Pending <span></span></button>
+      <button class="tab" role="tab" data-tab="log" id="tab-log" aria-controls="histPanel">Answered <span></span></button>
     </div>
-    <div class="list-slot" data-slot="history"></div>
+    <div class="list-slot" data-slot="history" id="histPanel" role="tabpanel" aria-labelledby="tab-waiting"></div>
   </section>
 
   <div id="listPark" hidden><div id="listWrap">
@@ -127,32 +142,32 @@
     <div class="empty" id="empty" hidden></div>
   </div></div>
 
-  <!-- MORE -->
+  <!-- MORE: settings and your data -->
   <section class="view" id="view-more" data-view="more" aria-labelledby="moreTitle" hidden>
     <header class="top"><h1 class="title" id="moreTitle">More</h1></header>
-    <h2 class="sec">Pace and fear</h2>
-    <section class="stats-more" id="progressMore" aria-label="Pace and fear"></section>
-    <section class="month" id="monthCard" aria-label="Month in review" hidden></section>
-    <h2 class="sec">Your record</h2>
-    <div class="rows">
-      <button type="button" class="row-btn" id="help-month"><b>Month in review</b><span>Last month’s asks, no’s, scariest ask and biggest fear drop</span></button>
-      <button type="button" class="row-btn" id="shareBtn"><b>Share a picture</b><span>Your count and grid as an image. Nothing leaves the phone unless you share it</span></button>
-      <button type="button" class="row-btn" id="help-calendar"><b>Add follow-ups to your calendar</b><span>Pending asks’ follow-up dates, plus an optional daily reminder</span></button>
-      <button type="button" class="row-btn" id="exportBtn"><b>Export CSV</b><span>A spreadsheet of every ask</span></button>
-    </div>
-    <h2 class="sec">Keep it safe</h2>
-    <div class="rows">
-      <button type="button" class="row-btn" id="help-export"><b>Save a backup</b><span id="moreBackupInfo">Your list lives only on this phone</span></button>
-      <button type="button" class="row-btn" id="help-import"><b>Restore or import</b><span>A backup file, or a CSV from your old sheet. Asks already here are skipped</span></button>
-    </div>
-    <h2 class="sec">App</h2>
-    <div class="rows">
-      <button type="button" class="row-btn" id="settingsBtn"><b>Settings</b><span>Weekly goal, finish date, follow-ups, day start, pause</span></button>
-      <div class="row-btn row-static"><b>Appearance</b>
-        <div class="chips" id="themeSeg" role="group" aria-label="Appearance"><button type="button" class="chip" data-theme-set="system">System</button><button type="button" class="chip" data-theme-set="light">Light</button><button type="button" class="chip" data-theme-set="dark">Dark</button></div></div>
-      <button type="button" class="row-btn" id="help-library"><b>Starter library</b><span>87 asks by category and difficulty</span></button>
-      <button type="button" class="row-btn" id="help-tour"><b>Take the tour</b><span>A one-minute walk through the app, with sample data</span></button>
-    </div>
+    <section class="group" aria-labelledby="recLbl">
+      <h2 class="sec" id="recLbl">Your record</h2>
+      <div class="rows">
+        <button type="button" class="row-btn" id="shareBtn"><b>Share a picture</b><span>Your count and grid as an image. Nothing leaves the phone unless you share it</span></button>
+        <button type="button" class="row-btn" id="help-calendar"><b>Add follow-ups to your calendar</b><span>Pending asks’ follow-up dates, plus an optional daily reminder</span></button>
+        <button type="button" class="row-btn" id="exportBtn"><b>Export CSV</b><span>A spreadsheet of every ask</span></button>
+      </div>
+    </section>
+    <section class="group" aria-labelledby="safeLbl">
+      <h2 class="sec" id="safeLbl">Keep it safe</h2>
+      <div class="rows">
+        <button type="button" class="row-btn" id="help-export"><b>Save a backup</b><span id="moreBackupInfo">Your list lives only on this phone</span></button>
+        <button type="button" class="row-btn" id="help-import"><b>Restore or import</b><span>A backup file, or a CSV from your old sheet. Asks already here are skipped</span></button>
+      </div>
+    </section>
+    <section class="group" aria-labelledby="appLbl">
+      <h2 class="sec" id="appLbl">App</h2>
+      <div class="rows">
+        <button type="button" class="row-btn" id="settingsBtn"><b>Settings</b><span>Weekly goal, follow-ups, day start, pause, appearance</span></button>
+        <button type="button" class="row-btn" id="help-library"><b>Starter library</b><span><span data-lib-count>84</span> asks by category and difficulty</span></button>
+        <button type="button" class="row-btn" id="help-tour"><b>Take the tour</b><span>A one-minute walk through the app, with sample data</span></button>
+      </div>
+    </section>
     <p class="help-note">Tap any ask to edit it, add notes or delete it. After every change you get a few seconds to undo.</p>
     <p class="version mono" id="versionLine"></p>
     <input type="file" id="importFile" accept=".csv,.json,text/csv,application/json" hidden>
@@ -242,24 +257,44 @@
   </div>
 </dialog>
 
-<dialog id="settingsDlg" aria-label="Settings">
+<dialog id="settingsDlg" aria-labelledby="setTitle">
   <form class="ed" id="sForm" method="dialog">
-    <h2>Settings</h2>
+    <h2 id="setTitle">Settings</h2>
     <div class="two">
       <label>Weekly goal (asks)<input type="number" id="sGoal" min="1" max="200" inputmode="numeric"></label>
       <label>Finish by (optional)<input type="date" id="sTarget"></label>
       <label>Follow up after (days)<input type="number" id="sFollow" min="1" max="120" inputmode="numeric"></label>
       <label>My day starts at<select id="sDayStart"><option value="0">Midnight</option><option value="1">1 a.m.</option><option value="2">2 a.m.</option><option value="3">3 a.m.</option><option value="4">4 a.m.</option><option value="5">5 a.m.</option><option value="6">6 a.m.</option></select></label>
     </div>
-    <div class="box"><b>Pause the challenge</b><span>For finals or travel. Your weekly goal and pace skip these days.</span>
-      <div class="two"><label>Paused until<input type="date" id="sPauseUntil"></label><div class="resume"><button type="button" class="b" id="sResume" hidden>Resume now</button></div></div></div>
-    <div class="box"><b>Calendar</b><span>Adds your follow-up dates, and a daily reminder if you pick a time, to Apple or Google Calendar. Run it again after you add new asks.</span>
-      <div class="two"><label>Daily reminder (optional)<input type="time" id="sReminder"></label><div class="resume"><button type="button" class="b" id="sCalendar">Add to calendar</button></div></div></div>
-    <label class="check"><input type="checkbox" id="sNoReply"> Count “No reply” as a no</label>
-    <label class="check"><input type="checkbox" id="sReflect"> Offer “How did it go?” after each answer</label>
-    <label class="check"><input type="checkbox" id="sHaptics"> Vibrate when a square fills (Android)</label>
-    <div class="box"><b>Backup</b><span id="sBackupInfo"></span>
-      <div class="acts"><button type="button" class="b no" id="sBackup">Save backup</button><button type="button" class="b" id="sRestore">Restore</button></div></div>
+    <fieldset class="set-group">
+      <legend>Appearance</legend>
+      <div class="seg radio-seg" id="themeSeg">
+        <label><input type="radio" name="theme" value="system"><span>System</span></label>
+        <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+        <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="set-group">
+      <legend>Pause the challenge</legend>
+      <p class="help-note">For finals or travel. Your weekly goal and pace skip these days.</p>
+      <div class="two"><label>Paused until<input type="date" id="sPauseUntil"></label><div class="resume"><button type="button" class="b" id="sResume" hidden>Resume now</button></div></div>
+    </fieldset>
+    <fieldset class="set-group">
+      <legend>Calendar</legend>
+      <p class="help-note">Adds your follow-up dates, and a daily reminder if you pick a time, to Apple or Google Calendar. Run it again after you add new asks.</p>
+      <div class="two"><label>Daily reminder (optional)<input type="time" id="sReminder"></label><div class="resume"><button type="button" class="b" id="sCalendar">Add to calendar</button></div></div>
+    </fieldset>
+    <fieldset class="set-group">
+      <legend>Answers</legend>
+      <label class="check"><input type="checkbox" id="sNoReply"> Count “No reply” as a no</label>
+      <label class="check"><input type="checkbox" id="sReflect"> Offer “How did it go?” after each answer</label>
+      <label class="check"><input type="checkbox" id="sHaptics"> Vibrate when a square fills (Android)</label>
+    </fieldset>
+    <fieldset class="set-group">
+      <legend>Backup</legend>
+      <p class="help-note" id="sBackupInfo"></p>
+      <div class="acts"><button type="button" class="b" id="sBackup">Save backup</button><button type="button" class="b" id="sRestore">Restore</button></div>
+    </fieldset>
     <div class="foot"><span></span><div class="acts"><button type="button" class="b" id="sClose">Cancel</button><button type="submit" class="b no">Save</button></div></div>
   </form>
 </dialog>
